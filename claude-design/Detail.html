@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prompt Library — Code review buddy</title>
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="styles/components.css" />
+<style>
+  .wrap { max-width: var(--width-content); margin: 0 auto; padding: 0 var(--space-5); }
+  .read { max-width: var(--width-reading); margin: 0 auto; }
+
+  /* breadcrumb */
+  .crumb {
+    display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap;
+    font-size: var(--text-sm); color: var(--text-secondary);
+    padding: var(--space-7) 0 var(--space-6);
+    transition: color var(--dur) var(--ease), gap var(--dur) var(--ease);
+  }
+  .crumb:hover { color: var(--text); gap: var(--space-1); }
+  .crumb svg { width: 16px; height: 16px; }
+
+  /* title + meta */
+  .detail-title {
+    font-size: var(--text-3xl); font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight); line-height: var(--leading-tight);
+    margin: 0 0 var(--space-4); text-wrap: balance;
+  }
+  .detail-tags { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4); }
+  .detail-meta {
+    display: flex; align-items: center; gap: var(--space-3);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    color: var(--text-tertiary); letter-spacing: var(--tracking-wide);
+  }
+  .detail-meta span { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+  .detail-meta svg { width: 14px; height: 14px; }
+  .detail-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border-strong); }
+
+  /* THE PROMPT BLOCK — focal point */
+  .prompt-block {
+    position: relative;
+    margin: var(--space-6) 0 var(--space-7);
+    background: var(--code-bg);
+    border: var(--border-hairline) solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .prompt-block__bar {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+    border-bottom: var(--border-hairline) solid var(--border);
+    background: var(--surface);
+  }
+  .prompt-block__label {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--text-tertiary);
+  }
+  .prompt-block__dots { display: inline-flex; gap: 5px; }
+  .prompt-block__dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--border-strong); }
+  .prompt-block__body {
+    margin: 0; padding: var(--space-5);
+    font-family: var(--font-mono); font-size: var(--text-md);
+    line-height: var(--leading-relaxed); color: var(--text);
+    white-space: pre-wrap; word-break: break-word;
+  }
+  /* satisfying copy flash */
+  .prompt-block.is-flash { animation: flash 600ms var(--ease); }
+  @keyframes flash {
+    0% { box-shadow: 0 0 0 0 var(--accent-soft); }
+    30% { box-shadow: 0 0 0 4px var(--accent-soft); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .copy-cta { min-width: 132px; white-space: nowrap; }
+
+  /* usage note */
+  .usage { margin: 0 0 var(--space-8); }
+  .usage__label {
+    font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-wide);
+    text-transform: uppercase; color: var(--text-tertiary); margin: 0 0 var(--space-3);
+  }
+  .usage__text { font-size: var(--text-md); line-height: var(--leading-relaxed); color: var(--text-secondary); margin: 0; text-wrap: pretty; }
+  .usage__text strong { color: var(--text); font-weight: var(--weight-medium); }
+
+  .rule { height: 1px; background: var(--border); margin: var(--space-8) 0; }
+
+  /* related section — breaks out to full width */
+  .related { padding-bottom: var(--space-9); }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+  @media (max-width: 900px) { .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  .pl-iconbtn { width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: var(--radius-sm); border: var(--border-hairline) solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .pl-iconbtn:hover { background: var(--surface-soft); color: var(--text); }
+  .pl-iconbtn svg { width: 18px; height: 18px; }
+
+  @media (max-width: 720px) {
+    .pl-header__search { display: none; }
+    .detail-title { font-size: var(--text-2xl); }
+    .prompt-block__bar { padding-left: var(--space-4); }
+    .copy-cta { min-width: 0; }
+    .copy-cta span { display: none; }
+    .copy-cta { width: 44px; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="pl-header">
+  <div class="pl-header__inner">
+    <a class="pl-wordmark" href="Home.html"><span class="pl-wordmark__mark pl-wordmark__mark--accent">P</span> Prompt Library</a>
+    <div class="pl-header__search">
+      <div class="pl-search">
+        <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="pl-search__input" type="text" placeholder="Search prompts…" aria-label="Search prompts" />
+        <span class="pl-search__kbd">⌘K</span>
+      </div>
+    </div>
+    <nav class="pl-header__nav">
+      <a class="pl-navlink pl-navlink--active" href="Prompts.html">Browse</a>
+      <a class="pl-navlink">Categories</a>
+      <a class="pl-navlink">Submit</a>
+      <button class="pl-iconbtn" id="themeToggle" aria-label="Toggle dark mode"></button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ ARTICLE (reading width) ============ -->
+  <article class="read">
+    <a class="crumb" href="Prompts.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      All prompts
+    </a>
+
+    <h1 class="detail-title">Code review buddy</h1>
+
+    <div class="detail-tags" id="detailTags"></div>
+
+    <div class="detail-meta">
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        18,412 views
+      </span>
+      <span class="detail-dot"></span>
+      <span>Added Mar 4, 2026</span>
+    </div>
+
+    <!-- THE PROMPT -->
+    <section class="prompt-block" id="promptBlock">
+      <div class="prompt-block__bar">
+        <span class="prompt-block__label">
+          <span class="prompt-block__dots"><i></i><i></i><i></i></span>
+          prompt
+        </span>
+        <button class="pl-btn pl-btn--primary copy-cta" id="copyBtn" data-copy>
+          <svg class="pl-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Copy prompt</span>
+        </button>
+      </div>
+      <pre class="prompt-block__body" id="promptText">You are an experienced senior engineer doing a careful code review.
+
+Review the code below and respond in this order:
+
+1. Summary — one or two sentences on what the code does and its overall health.
+2. Issues — a list ordered by severity (blocker, major, minor). For each: the
+   problem, why it matters, and a concrete fix with a short code snippet.
+3. Edge cases — inputs or states the code does not handle yet.
+4. Nits — style and naming suggestions, clearly marked as optional.
+
+Be direct and specific. Reference exact line numbers or symbols. Do not rewrite
+the whole file unless asked — show the smallest change that resolves each issue.
+
+CODE:
+"""
+{paste your code here}
+"""</pre>
+    </section>
+
+    <!-- USAGE NOTE -->
+    <div class="usage">
+      <p class="usage__label">How to use it</p>
+      <p class="usage__text">Replace <strong>{paste your code here}</strong> with the snippet or file you want reviewed. Works best on a focused chunk — a single function, component, or module — rather than an entire repository. For language-specific conventions, add a line like <strong>“Follow the Google Python style guide.”</strong> before the code block.</p>
+    </div>
+  </article>
+
+  <div class="read"><div class="rule"></div></div>
+
+  <!-- ============ RELATED (full width) ============ -->
+  <section class="related">
+    <div class="pl-section-head">
+      <div>
+        <h2 class="pl-section-head__title">More from these tags</h2>
+        <p class="pl-section-head__sub">Other prompts tagged coding &amp; review</p>
+      </div>
+      <a class="pl-viewall" href="Prompts.html">View all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+    <div class="grid-3" id="relatedGrid"></div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="pl-footer">
+  <div class="pl-footer__inner">
+    <a class="pl-wordmark" style="font-size:var(--text-base)" href="Home.html"><span class="pl-wordmark__mark">P</span> Prompt Library</a>
+    <nav class="pl-footer__links">
+      <a class="pl-footer__link">Browse</a>
+      <a class="pl-footer__link">Categories</a>
+      <a class="pl-footer__link">Submit a prompt</a>
+      <a class="pl-footer__link">About</a>
+    </nav>
+    <span class="pl-footer__copy">© 2026 Prompt Library</span>
+  </div>
+</footer>
+
+<script>
+const DETAIL_TAGS = ['coding','review'];
+
+const RELATED = [
+  { title: 'Refactor this function', preview: 'Refactor the function below for readability without changing behavior. Explain each change in one short comment.', tags: ['coding'], views: '5.2k' },
+  { title: 'Write unit tests', preview: 'Write thorough unit tests for the function below. Cover happy path, edge cases, and failure modes. Name tests clearly.', tags: ['coding'], views: '8.7k' },
+  { title: 'Debug this error', preview: 'Here is an error and the surrounding code. Explain the likely cause in plain language, then give the smallest fix.', tags: ['coding'], views: '1.7k' },
+  { title: 'Generate SQL from a question', preview: 'Given this schema, write a single SQL query that answers the question. Explain any joins in one line. Use clear aliases.', tags: ['coding','analysis'], views: '3.8k' },
+  { title: 'Optimize a SQL query', preview: 'Here is a slow query and its plan. Suggest concrete optimizations and explain the expected impact of each one.', tags: ['coding','analysis'], views: '3.3k' },
+  { title: 'Critique my design', preview: 'Critique the design described below against clarity, hierarchy, and consistency. Give 3 strengths and 3 concrete fixes.', tags: ['creative','analysis'], views: '3.1k' },
+];
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+function escapeAttr(s){ return s.replace(/"/g,'&quot;'); }
+
+/* detail tags → listing page */
+document.getElementById('detailTags').innerHTML = DETAIL_TAGS.map(t => `<a class="pl-tag" href="Prompts.html">${t}</a>`).join('');
+
+/* related cards */
+function card(p) {
+  return `
+  <article class="pl-card" tabindex="0" data-copy="${escapeAttr(p.preview)}">
+    <div class="pl-card__head">
+      <h3 class="pl-card__title">${p.title}</h3>
+      <button class="pl-copy-icon pl-card__copy" aria-label="Copy prompt" data-copy="${escapeAttr(p.preview)}">${COPY_ICON}</button>
+    </div>
+    <pre class="pl-card__preview">${p.preview}</pre>
+    <div class="pl-card__foot">
+      <div class="pl-card__tags">${p.tags.map(t => `<a class="pl-tag" href="Prompts.html">${t}</a>`).join('')}</div>
+      <span class="pl-meta">${EYE_ICON} ${p.views}</span>
+    </div>
+  </article>`;
+}
+document.getElementById('relatedGrid').innerHTML = RELATED.map(card).join('');
+
+/* ---- main Copy button: prominent + satisfying ---- */
+const copyBtn = document.getElementById('copyBtn');
+const promptBlock = document.getElementById('promptBlock');
+let copyTimer = null;
+copyBtn.addEventListener('click', () => {
+  const text = document.getElementById('promptText').textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+  copyBtn.classList.add('is-copied');
+  copyBtn.querySelector('span').textContent = 'Copied';
+  copyBtn.querySelector('.pl-btn__icon').outerHTML = '<svg class="pl-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  promptBlock.classList.remove('is-flash'); void promptBlock.offsetWidth; promptBlock.classList.add('is-flash');
+  clearTimeout(copyTimer);
+  copyTimer = setTimeout(() => {
+    copyBtn.classList.remove('is-copied');
+    copyBtn.querySelector('span').textContent = 'Copy prompt';
+    copyBtn.querySelector('.pl-btn__icon').outerHTML = '<svg class="pl-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  }, 1800);
+});
+
+/* ---- related card copy icons ---- */
+document.querySelectorAll('#relatedGrid [data-copy]').forEach(el => {
+  el.addEventListener('click', (e) => {
+    const btn = e.target.closest('.pl-copy-icon');
+    if (!btn) return; // let tag links and card navigation behave
+    e.preventDefault(); e.stopPropagation();
+    const text = el.getAttribute('data-copy');
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+    btn.classList.add('is-copied'); const orig = btn.innerHTML; btn.innerHTML = CHECK_ICON;
+    setTimeout(() => { btn.classList.remove('is-copied'); btn.innerHTML = orig; }, 1600);
+  });
+});
+
+/* ---- theme ---- */
+const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('pl-theme', t);
+  document.getElementById('themeToggle').innerHTML = t === 'dark' ? MOON : SUN;
+}
+document.getElementById('themeToggle').addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+/* ---- init: restore shared theme & accent ---- */
+applyTheme(localStorage.getItem('pl-theme') || 'light');
+const ACCENTS = { indigo:['#4F46E5','#4338CA'], terracotta:['#C2410C','#9A3412'], forest:['#15803D','#166534'], slate:['#1E40AF','#1E3A8A'], plum:['#9333EA','#7E22CE'] };
+const savedAccent = localStorage.getItem('pl-accent');
+if (savedAccent && ACCENTS[savedAccent]) {
+  document.documentElement.style.setProperty('--accent', ACCENTS[savedAccent][0]);
+  document.documentElement.style.setProperty('--accent-hover', ACCENTS[savedAccent][1]);
+}
+</script>
+</body>
+</html>

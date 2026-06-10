@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prompt Library — Prompts</title>
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="styles/components.css" />
+<style>
+  .page { max-width: var(--width-content); margin: 0 auto; padding: 0 var(--space-5); }
+
+  /* preview switcher (demo aid) */
+  .preview-bar {
+    background: var(--text); color: var(--bg);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+  }
+  .preview-bar__inner {
+    max-width: var(--width-content); margin: 0 auto;
+    padding: var(--space-2) var(--space-5);
+    display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+  }
+  .preview-bar__label { opacity: 0.6; letter-spacing: var(--tracking-wide); }
+  .preview-bar__btns { display: flex; gap: var(--space-2); }
+  .preview-bar__btn {
+    border: 1px solid color-mix(in srgb, var(--bg) 30%, transparent);
+    background: transparent; color: var(--bg);
+    font-family: var(--font-mono); font-size: var(--text-xs);
+    padding: 3px 10px; border-radius: var(--radius-full); cursor: pointer; white-space: nowrap;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .preview-bar__btn:hover { background: color-mix(in srgb, var(--bg) 18%, transparent); }
+  .preview-bar__btn[aria-pressed='true'] { background: var(--bg); color: var(--text); border-color: var(--bg); }
+
+  /* context bar */
+  .context {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: var(--space-5); flex-wrap: wrap;
+    padding: var(--space-8) 0 var(--space-6);
+    border-bottom: var(--border-hairline) solid var(--border);
+    margin-bottom: var(--space-6);
+  }
+  .context__main { min-width: 0; }
+  .context__eyebrow { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--text-tertiary); margin: 0 0 var(--space-2); }
+  .context__heading {
+    font-size: var(--text-2xl); font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight); margin: 0; line-height: var(--leading-tight);
+    text-wrap: pretty;
+  }
+  .context__q { color: var(--text); }
+  .context__count { font-size: var(--text-sm); color: var(--text-secondary); margin: var(--space-1) 0 0; font-family: var(--font-mono); }
+
+  /* selected tag pill with clear */
+  .context__tagpill {
+    display: inline-flex; align-items: center; gap: var(--space-2); vertical-align: middle;
+    height: 34px; padding: 0 var(--space-2) 0 var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--accent); color: var(--accent-contrast);
+    font-size: var(--text-md); font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-snug); text-transform: capitalize;
+  }
+  .context__clear {
+    width: 24px; height: 24px; display: grid; place-items: center;
+    border: none; border-radius: var(--radius-full); cursor: pointer;
+    background: color-mix(in srgb, #000 18%, transparent);
+    color: var(--accent-contrast);
+    transition: background var(--dur) var(--ease);
+  }
+  .context__clear:hover { background: color-mix(in srgb, #000 32%, transparent); }
+  .context__clear svg { width: 14px; height: 14px; }
+
+  /* sort control */
+  .sort { display: flex; align-items: center; gap: var(--space-3); flex-shrink: 0; }
+  .sort__label { font-size: var(--text-sm); color: var(--text-secondary); }
+  .seg { display: flex; gap: 3px; padding: 3px; background: var(--surface-soft); border: var(--border-hairline) solid var(--border); border-radius: var(--radius-md); }
+  .seg__btn { height: 32px; padding: 0 var(--space-3); border: none; background: transparent; color: var(--text-secondary); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: var(--weight-medium); border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .seg__btn:hover { color: var(--text); }
+  .seg__btn[aria-pressed='true'] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.12); }
+
+  /* grid */
+  .grid-3 { display: grid; grid-template-columns: repeat(var(--cols, 3), 1fr); gap: var(--space-4); }
+  @media (max-width: 900px) { .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  /* load more */
+  .loadmore { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-8) 0 var(--space-9); }
+  .loadmore__hint { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); }
+
+  /* empty state suggested tags */
+  .empty-suggest { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; margin-top: var(--space-1); }
+
+  .pl-iconbtn { width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: var(--radius-sm); border: var(--border-hairline) solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .pl-iconbtn:hover { background: var(--surface-soft); color: var(--text); }
+  .pl-iconbtn svg { width: 18px; height: 18px; }
+
+  @media (max-width: 720px) {
+    .pl-header__search { display: none; }
+    .context { align-items: flex-start; }
+  }
+
+  /* ---- Tweaks panel ---- */
+  .tweaks {
+    position: fixed; right: var(--space-5); bottom: var(--space-5); z-index: 200;
+    width: 280px; display: none; flex-direction: column;
+    background: var(--surface); border: var(--border-hairline) solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: 0 16px 48px -16px hsl(var(--shadow-color) / 0.35);
+    overflow: hidden;
+  }
+  .tweaks.is-open { display: flex; }
+  .tweaks__head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); border-bottom: var(--border-hairline) solid var(--border); }
+  .tweaks__title { font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-snug); margin: 0; }
+  .tweaks__close { width: 28px; height: 28px; display: grid; place-items: center; border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; border-radius: var(--radius-sm); }
+  .tweaks__close:hover { background: var(--surface-soft); color: var(--text); }
+  .tweaks__close svg { width: 16px; height: 16px; }
+  .tweaks__body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-5); }
+  .tweak-row { display: flex; flex-direction: column; gap: var(--space-2); }
+  .tweak-row__label { font-size: var(--text-xs); font-weight: var(--weight-medium); color: var(--text-secondary); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+  .tw-seg { display: flex; gap: 4px; padding: 3px; background: var(--surface-soft); border: var(--border-hairline) solid var(--border); border-radius: var(--radius-md); }
+  .tw-seg__btn { flex: 1; height: 32px; border: none; background: transparent; color: var(--text-secondary); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: var(--weight-medium); border-radius: var(--radius-sm); cursor: pointer; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .tw-seg__btn:hover { color: var(--text); }
+  .tw-seg__btn[aria-pressed='true'] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.12); }
+  .tweak-accents { display: flex; gap: var(--space-2); }
+  .tweak-accent { width: 28px; height: 28px; border-radius: var(--radius-full); border: 2px solid var(--border); cursor: pointer; padding: 0; transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+  .tweak-accent:hover { transform: scale(1.1); }
+  .tweak-accent[aria-pressed='true'] { border-color: var(--text); transform: scale(1.1); }
+  .tweak-toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+  .switch { position: relative; width: 42px; height: 24px; border-radius: var(--radius-full); border: none; background: var(--border-strong); cursor: pointer; transition: background var(--dur) var(--ease); padding: 0; }
+  .switch[aria-pressed='true'] { background: var(--accent); }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform var(--dur) var(--ease); }
+  .switch[aria-pressed='true']::after { transform: translateX(18px); }
+</style>
+</head>
+<body>
+
+<!-- ============ PREVIEW SWITCHER (demo aid) ============ -->
+<div class="preview-bar">
+  <div class="preview-bar__inner">
+    <span class="preview-bar__label">PREVIEW CONTEXT —</span>
+    <div class="preview-bar__btns" id="previewBtns">
+      <button class="preview-bar__btn" data-state="search">Search results</button>
+      <button class="preview-bar__btn" data-state="tag" aria-pressed="true">Single tag</button>
+      <button class="preview-bar__btn" data-state="empty">Empty (no results)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header class="pl-header">
+  <div class="pl-header__inner">
+    <a class="pl-wordmark" href="Home.html"><span class="pl-wordmark__mark pl-wordmark__mark--accent">P</span> Prompt Library</a>
+    <div class="pl-header__search">
+      <div class="pl-search">
+        <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="pl-search__input" type="text" id="searchInput" placeholder="Search prompts…" aria-label="Search prompts" />
+        <span class="pl-search__kbd">⌘K</span>
+      </div>
+    </div>
+    <nav class="pl-header__nav">
+      <a class="pl-navlink pl-navlink--active" href="#">Browse</a>
+      <a class="pl-navlink">Categories</a>
+      <a class="pl-navlink">Submit</a>
+      <button class="pl-iconbtn" id="themeToggle" aria-label="Toggle dark mode"></button>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ============ CONTEXT BAR ============ -->
+  <section class="context" id="contextBar"></section>
+
+  <!-- ============ RESULTS / EMPTY ============ -->
+  <div id="results"></div>
+
+</main>
+
+<!-- ============ TWEAKS PANEL ============ -->
+<aside class="tweaks" id="tweaks" aria-label="Tweaks">
+  <div class="tweaks__head">
+    <h2 class="tweaks__title">Tweaks</h2>
+    <button class="tweaks__close" id="tweaksClose" aria-label="Close tweaks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="tweaks__body">
+    <div class="tweak-row">
+      <span class="tweak-row__label">Grid columns</span>
+      <div class="tw-seg" id="segCols" role="group" aria-label="Grid columns">
+        <button class="tw-seg__btn" data-cols="2">2 columns</button>
+        <button class="tw-seg__btn" data-cols="3">3 columns</button>
+      </div>
+    </div>
+    <div class="tweak-row">
+      <span class="tweak-row__label">Accent</span>
+      <div class="tweak-accents" id="segAccent" role="group" aria-label="Accent color">
+        <button class="tweak-accent" data-accent="indigo" style="background:#4F46E5" title="Indigo"></button>
+        <button class="tweak-accent" data-accent="terracotta" style="background:#C2410C" title="Terracotta"></button>
+        <button class="tweak-accent" data-accent="forest" style="background:#15803D" title="Forest"></button>
+        <button class="tweak-accent" data-accent="slate" style="background:#1E40AF" title="Slate blue"></button>
+        <button class="tweak-accent" data-accent="plum" style="background:#9333EA" title="Plum"></button>
+      </div>
+    </div>
+    <div class="tweak-row">
+      <div class="tweak-toggle">
+        <span class="tweak-row__label" style="text-transform:none;letter-spacing:0;font-size:var(--text-sm);color:var(--text)">Default sort: most viewed</span>
+        <button class="switch" id="toggleSort" aria-pressed="false" aria-label="Default to most viewed"></button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ FOOTER ============ -->
+<footer class="pl-footer">
+  <div class="pl-footer__inner">
+    <a class="pl-wordmark" style="font-size:var(--text-base)" href="Home.html"><span class="pl-wordmark__mark">P</span> Prompt Library</a>
+    <nav class="pl-footer__links">
+      <a class="pl-footer__link">Browse</a>
+      <a class="pl-footer__link">Categories</a>
+      <a class="pl-footer__link">Submit a prompt</a>
+      <a class="pl-footer__link">About</a>
+    </nav>
+    <span class="pl-footer__copy">© 2026 Prompt Library</span>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   Data
+   ============================================================ */
+const PROMPTS = [
+  { title: 'Summarize a long article', preview: 'Summarize the article below in 5 bullet points, then one sentence a busy executive could act on. Keep it neutral.', tags: ['writing','analysis'], views: 1200 },
+  { title: 'Rewrite copy in a friendly tone', preview: 'Rewrite the text below to sound warm and conversational without losing meaning. Shorten long sentences. No exclamation marks.', tags: ['writing','marketing'], views: 2400 },
+  { title: 'Generate SQL from a question', preview: 'Given this schema, write a single SQL query that answers the question. Explain any joins in one line. Use clear aliases.', tags: ['coding','analysis'], views: 3800 },
+  { title: 'Turn notes into a brief', preview: 'Convert these rough notes into a one-page creative brief: objective, audience, key message, deliverables, timeline.', tags: ['marketing','productivity'], views: 980 },
+  { title: 'Debug this error', preview: 'Here is an error and the surrounding code. Explain the likely cause in plain language, then give the smallest fix.', tags: ['coding'], views: 1700 },
+  { title: 'Brainstorm product names', preview: 'Generate 20 short, brandable names for the product described below. Mix invented words and real words. No hyphens.', tags: ['creative','marketing'], views: 1100 },
+  { title: 'Code review buddy', preview: 'Review this code for bugs, edge cases, and readability. List issues by severity, then suggest concrete fixes.', tags: ['coding'], views: 18400 },
+  { title: 'Explain it simply', preview: 'Explain the concept below to a smart 12-year-old. Use one everyday analogy. Define any term you can\'t avoid.', tags: ['writing','productivity'], views: 14900 },
+  { title: 'Meeting notes to action items', preview: 'From the transcript below, extract decisions and action items as a table: owner, task, due date. Flag anything unclear.', tags: ['productivity'], views: 12200 },
+  { title: 'Polish my email', preview: 'Rewrite this email to be clear, polite, and concise. Keep my voice. Suggest a subject line. Return only the email.', tags: ['writing'], views: 11000 },
+  { title: 'Plan a project', preview: 'Break the goal below into phases with milestones and rough estimates. Call out risks and dependencies up front.', tags: ['productivity','analysis'], views: 9600 },
+  { title: 'Write unit tests', preview: 'Write thorough unit tests for the function below. Cover happy path, edge cases, and failure modes. Name tests clearly.', tags: ['coding'], views: 8700 },
+  { title: 'Draft a product announcement', preview: 'Write a concise product announcement: what shipped, why it matters, and a clear next step. Confident, not hypey.', tags: ['marketing','writing'], views: 4300 },
+  { title: 'Create a content calendar', preview: 'Plan a 4-week content calendar for the topic below. For each post: channel, format, hook, and a one-line goal.', tags: ['marketing','productivity'], views: 3600 },
+  { title: 'Refactor this function', preview: 'Refactor the function below for readability without changing behavior. Explain each change in one short comment.', tags: ['coding'], views: 5200 },
+  { title: 'Analyze survey results', preview: 'Given these survey responses, surface the top 3 themes with a representative quote each, plus one surprising finding.', tags: ['analysis'], views: 2900 },
+  { title: 'Write a cold outreach email', preview: 'Draft a short cold email that leads with the recipient\'s problem, offers one specific value, and ends with a soft ask.', tags: ['marketing'], views: 6100 },
+  { title: 'Generate a blog post outline', preview: 'Create a detailed outline for a blog post on the topic below: working title, intro angle, sections, and a takeaway.', tags: ['writing','creative'], views: 4700 },
+  { title: 'Translate and localize copy', preview: 'Translate the copy below into natural, idiomatic French. Adapt examples and units for a local audience, not word-for-word.', tags: ['writing','marketing'], views: 2100 },
+  { title: 'Optimize a SQL query', preview: 'Here is a slow query and its plan. Suggest concrete optimizations and explain the expected impact of each one.', tags: ['coding','analysis'], views: 3300 },
+  { title: 'Turn data into a chart spec', preview: 'Given this dataset and question, recommend the best chart type and write a clear spec: axes, encoding, and annotations.', tags: ['analysis','creative'], views: 1500 },
+  { title: 'Write release notes', preview: 'Turn this changelog into friendly release notes grouped by New, Improved, and Fixed. Lead with what users will notice.', tags: ['writing','productivity'], views: 2700 },
+  { title: 'Roleplay a job interview', preview: 'Act as a hiring manager for the role below. Ask one question at a time, then give brief feedback after each answer.', tags: ['creative','productivity'], views: 5400 },
+  { title: 'Critique my design', preview: 'Critique the design described below against clarity, hierarchy, and consistency. Give 3 strengths and 3 concrete fixes.', tags: ['creative','analysis'], views: 3100 },
+];
+
+const ALL_TAGS = ['writing','coding','marketing','productivity','analysis','creative'];
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const X_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+const ARROW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+/* ============================================================
+   State
+   ============================================================ */
+const PAGE = 9, STEP = 6;
+const _hashTag = location.hash.startsWith('#tag=') ? decodeURIComponent(location.hash.slice(5)) : null;
+let state = _hashTag
+  ? { mode: 'tag', query: '', tag: _hashTag, sort: 'recent', visible: PAGE }
+  : { mode: 'tag', query: '', tag: 'writing', sort: 'recent', visible: PAGE };
+
+function fmtViews(n){ return n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/,'') + 'k' : String(n); }
+function escapeAttr(s){ return s.replace(/"/g,'&quot;'); }
+
+/* ============================================================
+   Filtering + sorting
+   ============================================================ */
+function matches(p) {
+  if (state.mode === 'tag') return p.tags.includes(state.tag);
+  if (state.mode === 'search') {
+    const q = state.query.trim().toLowerCase();
+    if (!q) return true;
+    const tokens = q.split(/\s+/);
+    const hay = (p.title + ' ' + p.preview + ' ' + p.tags.join(' ')).toLowerCase();
+    return tokens.some(t => hay.includes(t));
+  }
+  return true; // all
+}
+function filtered() {
+  let list = PROMPTS.map((p,i) => ({ ...p, _i: i })).filter(matches);
+  if (state.sort === 'viewed') list.sort((a,b) => b.views - a.views);
+  else list.sort((a,b) => a._i - b._i); // recent = source order
+  return list;
+}
+
+/* ============================================================
+   Card
+   ============================================================ */
+function tagPills(tags) {
+  return tags.map(t => `<span class="pl-tag" data-tag="${t}">${t}</span>`).join('');
+}
+function card(p) {
+  return `
+  <article class="pl-card" tabindex="0" data-copy="${escapeAttr(p.preview)}">
+    <div class="pl-card__head">
+      <h3 class="pl-card__title">${p.title}</h3>
+      <button class="pl-copy-icon pl-card__copy" aria-label="Copy prompt" data-copy="${escapeAttr(p.preview)}">${COPY_ICON}</button>
+    </div>
+    <pre class="pl-card__preview">${p.preview}</pre>
+    <div class="pl-card__foot">
+      <div class="pl-card__tags">${tagPills(p.tags)}</div>
+      <span class="pl-meta">${EYE_ICON} ${fmtViews(p.views)}</span>
+    </div>
+  </article>`;
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function renderContext(total) {
+  const bar = document.getElementById('contextBar');
+  let main = '';
+  if (state.mode === 'search') {
+    main = `
+      <p class="context__eyebrow">Search results</p>
+      <h1 class="context__heading">Results for <span class="context__q">“${state.query}”</span></h1>
+      <p class="context__count">${total} ${total === 1 ? 'prompt' : 'prompts'}</p>`;
+  } else if (state.mode === 'tag') {
+    main = `
+      <p class="context__eyebrow">Browsing tag</p>
+      <h1 class="context__heading">
+        <span class="context__tagpill">${state.tag}
+          <button class="context__clear" id="clearTag" aria-label="Remove tag filter">${X_ICON}</button>
+        </span>
+      </h1>
+      <p class="context__count">${total} ${total === 1 ? 'prompt' : 'prompts'}</p>`;
+  } else {
+    main = `
+      <p class="context__eyebrow">Browse</p>
+      <h1 class="context__heading">All prompts</h1>
+      <p class="context__count">${total} ${total === 1 ? 'prompt' : 'prompts'}</p>`;
+  }
+
+  bar.innerHTML = `
+    <div class="context__main">${main}</div>
+    <div class="sort">
+      <span class="sort__label">Sort</span>
+      <div class="seg" id="sortSeg" role="group" aria-label="Sort results">
+        <button class="seg__btn" data-sort="recent" aria-pressed="${state.sort==='recent'}">Most recent</button>
+        <button class="seg__btn" data-sort="viewed" aria-pressed="${state.sort==='viewed'}">Most viewed</button>
+      </div>
+    </div>`;
+
+  const clear = document.getElementById('clearTag');
+  if (clear) clear.addEventListener('click', () => { state.mode = 'all'; state.visible = PAGE; render(); });
+  document.getElementById('sortSeg').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-sort]'); if (!b) return;
+    state.sort = b.dataset.sort; render();
+  });
+}
+
+function renderEmpty() {
+  const suggest = ['writing','coding','marketing','productivity'];
+  document.getElementById('results').innerHTML = `
+    <div class="pl-empty">
+      <div class="pl-empty__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </div>
+      <h3 class="pl-empty__title">No prompts found</h3>
+      <p class="pl-empty__text">We couldn't find anything for <span style="font-family:var(--font-mono);color:var(--text)">“${state.query}”</span>. Try a different keyword, or explore a tag:</p>
+      <div class="empty-suggest">${suggest.map(t => `<span class="pl-tag" data-tag="${t}">${t}</span>`).join('')}</div>
+    </div>`;
+}
+
+function render() {
+  const list = filtered();
+  renderContext(list.length);
+
+  if (list.length === 0) {
+    renderEmpty();
+    bindTagClicks();
+    syncSearchInput();
+    return;
+  }
+
+  const shown = list.slice(0, state.visible);
+  const remaining = list.length - shown.length;
+  document.getElementById('results').innerHTML = `
+    <div class="grid-3">${shown.map(card).join('')}</div>
+    ${remaining > 0 ? `
+      <div class="loadmore">
+        <button class="pl-btn pl-btn--secondary" id="loadMore">Load more</button>
+        <span class="loadmore__hint">Showing ${shown.length} of ${list.length}</span>
+      </div>` : `
+      <div class="loadmore">
+        <span class="loadmore__hint">You've reached the end — ${list.length} prompts</span>
+      </div>`}`;
+
+  const lm = document.getElementById('loadMore');
+  if (lm) lm.addEventListener('click', () => { state.visible += STEP; render(); });
+
+  bindCopy();
+  bindTagClicks();
+  bindCardNav();
+  syncSearchInput();
+}
+
+/* ============================================================
+   Interactions
+   ============================================================ */
+function bindCopy() {
+  document.querySelectorAll('#results [data-copy]').forEach(el => {
+    if (el.__copyBound) return; el.__copyBound = true;
+    el.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-copy]');
+      if (btn !== el && el.classList.contains('pl-card')) {
+        if (e.target.closest('[data-tag]')) return; // tag handled separately
+        return;
+      }
+      e.stopPropagation();
+      const text = el.getAttribute('data-copy');
+      if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+      if (btn && btn.classList.contains('pl-copy-icon')) {
+        btn.classList.add('is-copied'); const orig = btn.innerHTML; btn.innerHTML = CHECK_ICON;
+        setTimeout(() => { btn.classList.remove('is-copied'); btn.innerHTML = orig; }, 1600);
+      }
+    });
+  });
+}
+function bindCardNav() {
+  document.querySelectorAll('#results .pl-card').forEach(card => {
+    if (card.__navBound) return;
+    card.__navBound = true;
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.pl-copy-icon') || e.target.closest('[data-tag]') || e.target.closest('.pl-tag')) return;
+      window.location.href = 'Detail.html';
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.href = 'Detail.html'; }
+    });
+  });
+}
+function bindTagClicks() {
+  document.querySelectorAll('#results [data-tag]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.mode = 'tag'; state.tag = el.dataset.tag; state.query = ''; state.visible = PAGE;
+      syncPreviewBtns('tag'); render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+}
+function syncSearchInput() {
+  const input = document.getElementById('searchInput');
+  input.value = state.mode === 'search' ? state.query : '';
+}
+
+/* search input drives search mode */
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const v = e.target.value;
+  if (v.trim() === '') { state.mode = 'all'; state.query = ''; }
+  else { state.mode = 'search'; state.query = v; }
+  state.visible = PAGE;
+  syncPreviewBtns(state.mode === 'search' ? 'search' : null);
+  render();
+});
+
+/* preview switcher */
+function syncPreviewBtns(active) {
+  document.querySelectorAll('#previewBtns .preview-bar__btn').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.state === active)));
+}
+document.getElementById('previewBtns').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-state]'); if (!b) return;
+  const s = b.dataset.state;
+  if (s === 'search') { state = { mode:'search', query:'marketing copy', tag:'writing', sort:tweaks.defaultSort, visible:PAGE }; }
+  else if (s === 'tag') { state = { mode:'tag', query:'', tag:'writing', sort:tweaks.defaultSort, visible:PAGE }; }
+  else if (s === 'empty') { state = { mode:'search', query:'quantum haiku', tag:'writing', sort:tweaks.defaultSort, visible:PAGE }; }
+  syncPreviewBtns(s); render(); window.scrollTo({ top: 0 });
+});
+
+/* theme */
+const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('pl-theme', t);
+  document.getElementById('themeToggle').innerHTML = t === 'dark' ? MOON : SUN;
+}
+document.getElementById('themeToggle').addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+/* init — restore shared theme & accent */
+applyTheme(localStorage.getItem('pl-theme') || 'light');
+const ACCENTS = { indigo:['#4F46E5','#4338CA'], terracotta:['#C2410C','#9A3412'], forest:['#15803D','#166534'], slate:['#1E40AF','#1E3A8A'], plum:['#9333EA','#7E22CE'] };
+function applyAccent(id) {
+  const a = ACCENTS[id] || ACCENTS.indigo;
+  document.documentElement.style.setProperty('--accent', a[0]);
+  document.documentElement.style.setProperty('--accent-hover', a[1]);
+  localStorage.setItem('pl-accent', id);
+  document.querySelectorAll('.tweak-accent').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.accent === id)));
+}
+
+/* ============================================================
+   Tweaks
+   ============================================================ */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "columns": 2,
+  "accent": "indigo",
+  "defaultSort": "viewed"
+}/*EDITMODE-END*/;
+
+const startAccent = localStorage.getItem('pl-accent') || TWEAK_DEFAULTS.accent;
+const tweaks = { ...TWEAK_DEFAULTS, accent: startAccent };
+
+function persist(edits) { window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*'); }
+function applyColumns(n) {
+  document.documentElement.style.setProperty('--cols', String(n));
+  document.querySelectorAll('#segCols .tw-seg__btn').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.cols) === Number(n))));
+}
+
+// apply initial tweak state
+applyColumns(tweaks.columns);
+applyAccent(tweaks.accent);
+document.getElementById('toggleSort').setAttribute('aria-pressed', String(tweaks.defaultSort === 'viewed'));
+state.sort = tweaks.defaultSort;
+
+// wire tweak controls
+document.getElementById('segCols').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-cols]'); if (!b) return;
+  tweaks.columns = Number(b.dataset.cols); applyColumns(tweaks.columns); persist({ columns: tweaks.columns });
+});
+document.getElementById('segAccent').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-accent]'); if (!b) return;
+  tweaks.accent = b.dataset.accent; applyAccent(tweaks.accent); persist({ accent: tweaks.accent });
+});
+document.getElementById('toggleSort').addEventListener('click', () => {
+  tweaks.defaultSort = tweaks.defaultSort === 'viewed' ? 'recent' : 'viewed';
+  document.getElementById('toggleSort').setAttribute('aria-pressed', String(tweaks.defaultSort === 'viewed'));
+  state.sort = tweaks.defaultSort; render(); persist({ defaultSort: tweaks.defaultSort });
+});
+
+/* host protocol (listener first, then announce) */
+const panel = document.getElementById('tweaks');
+window.addEventListener('message', (e) => {
+  const t = e.data && e.data.type;
+  if (t === '__activate_edit_mode') panel.classList.add('is-open');
+  else if (t === '__deactivate_edit_mode') panel.classList.remove('is-open');
+});
+window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+document.getElementById('tweaksClose').addEventListener('click', () => {
+  panel.classList.remove('is-open');
+  window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+});
+
+render();
+</script>
+</body>
+</html>

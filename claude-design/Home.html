@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prompt Library — Home</title>
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="styles/components.css" />
+<style>
+  .page { max-width: var(--width-content); margin: 0 auto; padding: 0 var(--space-5); }
+
+  /* compact intro */
+  .intro { padding: var(--space-9) 0 var(--space-8); max-width: var(--width-reading); }
+  .intro__title { font-size: var(--text-4xl); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); margin: 0 0 var(--space-4); line-height: 1.04; }
+  .intro__desc { font-size: var(--text-lg); color: var(--text-secondary); margin: 0; line-height: var(--leading-snug); text-wrap: pretty; }
+  .intro__meta { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-5); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); letter-spacing: var(--tracking-wide); }
+  .intro__meta span { display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+  .intro__dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border-strong); }
+  @media (max-width: 600px) { .intro__title { font-size: var(--text-3xl); } }
+
+  /* section rhythm */
+  .section { padding-bottom: var(--space-9); }
+  .grid-3 { display: grid; grid-template-columns: repeat(var(--home-cols, 3), 1fr); gap: var(--space-4); }
+  @media (max-width: 900px) { .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ranked card (Most viewed) */
+  .pl-card__rank {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--text-tertiary);
+    letter-spacing: var(--tracking-wide);
+  }
+  .pl-card--ranked .pl-card__foot .pl-meta {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-secondary);
+  }
+  .pl-card--ranked .pl-card__foot .pl-meta svg { width: 15px; height: 15px; color: var(--accent); }
+
+  /* browse-by-tag grid */
+  .tag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-3);
+  }
+  .tag-tile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-4);
+    background: var(--surface);
+    border: var(--border-hairline) solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .tag-tile:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow: 0 8px 24px -14px hsl(var(--shadow-color) / 0.16);
+  }
+  .tag-tile__name { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text); text-transform: capitalize; }
+  .tag-tile__count { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); }
+
+  /* header theme toggle */
+  .pl-iconbtn {
+    width: 36px; height: 36px; display: inline-grid; place-items: center;
+    border-radius: var(--radius-sm); border: var(--border-hairline) solid transparent;
+    background: transparent; color: var(--text-secondary); cursor: pointer;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .pl-iconbtn:hover { background: var(--surface-soft); color: var(--text); }
+  .pl-iconbtn svg { width: 18px; height: 18px; }
+
+  @media (max-width: 720px) {
+    .pl-header__search { display: none; }
+    .intro { padding-top: var(--space-6); }
+  }
+
+  /* ---- Tweaks panel ---- */
+  .tweaks {
+    position: fixed; right: var(--space-5); bottom: var(--space-5); z-index: 200;
+    width: 280px; display: none; flex-direction: column;
+    background: var(--surface); border: var(--border-hairline) solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: 0 16px 48px -16px hsl(var(--shadow-color) / 0.35);
+    overflow: hidden;
+  }
+  .tweaks.is-open { display: flex; }
+  .tweaks__head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--space-3) var(--space-4); border-bottom: var(--border-hairline) solid var(--border);
+  }
+  .tweaks__title { font-size: var(--text-sm); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-snug); margin: 0; }
+  .tweaks__close { width: 28px; height: 28px; display: grid; place-items: center; border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; border-radius: var(--radius-sm); }
+  .tweaks__close:hover { background: var(--surface-soft); color: var(--text); }
+  .tweaks__close svg { width: 16px; height: 16px; }
+  .tweaks__body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-5); }
+  .tweak-row { display: flex; flex-direction: column; gap: var(--space-2); }
+  .tweak-row__label { font-size: var(--text-xs); font-weight: var(--weight-medium); color: var(--text-secondary); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+  .seg { display: flex; gap: 4px; padding: 3px; background: var(--surface-soft); border: var(--border-hairline) solid var(--border); border-radius: var(--radius-md); }
+  .seg__btn { flex: 1; height: 32px; border: none; background: transparent; color: var(--text-secondary); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: var(--weight-medium); border-radius: var(--radius-sm); cursor: pointer; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+  .seg__btn:hover { color: var(--text); }
+  .seg__btn[aria-pressed='true'] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.12); }
+  .tweak-accents { display: flex; gap: var(--space-2); }
+  .tweak-accent { width: 28px; height: 28px; border-radius: var(--radius-full); border: 2px solid var(--border); cursor: pointer; padding: 0; transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+  .tweak-accent:hover { transform: scale(1.1); }
+  .tweak-accent[aria-pressed='true'] { border-color: var(--text); transform: scale(1.1); }
+  .tweak-toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+  .switch { position: relative; width: 42px; height: 24px; border-radius: var(--radius-full); border: none; background: var(--border-strong); cursor: pointer; transition: background var(--dur) var(--ease); padding: 0; }
+  .switch[aria-pressed='true'] { background: var(--accent); }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform var(--dur) var(--ease); }
+  .switch[aria-pressed='true']::after { transform: translateX(18px); }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="pl-header">
+  <div class="pl-header__inner">
+    <a class="pl-wordmark" href="Home.html"><span class="pl-wordmark__mark pl-wordmark__mark--accent">P</span> Prompt Library</a>
+    <div class="pl-header__search">
+      <div class="pl-search">
+        <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="pl-search__input" type="text" placeholder="Search prompts…" aria-label="Search prompts" />
+        <span class="pl-search__kbd">⌘K</span>
+      </div>
+    </div>
+    <nav class="pl-header__nav">
+      <a class="pl-navlink pl-navlink--active">Browse</a>
+      <a class="pl-navlink">Categories</a>
+      <a class="pl-navlink">Submit</a>
+      <button class="pl-iconbtn" id="themeToggle" aria-label="Toggle dark mode"></button>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ============ INTRO ============ -->
+  <section class="intro">
+    <h1 class="intro__title">Prompt Library</h1>
+    <p class="intro__desc">Browse, search, and copy curated prompts.</p>
+    <div class="intro__meta">
+      <span>1,204 prompts</span>
+      <span class="intro__dot"></span>
+      <span>6 categories</span>
+      <span class="intro__dot"></span>
+      <span>updated daily</span>
+    </div>
+  </section>
+
+  <!-- ============ RECENTLY ADDED ============ -->
+  <section class="section">
+    <div class="pl-section-head">
+      <div>
+        <h2 class="pl-section-head__title">Recently added</h2>
+        <p class="pl-section-head__sub">Fresh prompts from the community</p>
+      </div>
+      <a class="pl-viewall">View all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+    <div class="grid-3" id="recentGrid"></div>
+  </section>
+
+  <!-- ============ MOST VIEWED ============ -->
+  <section class="section">
+    <div class="pl-section-head">
+      <div>
+        <h2 class="pl-section-head__title">Most viewed</h2>
+        <p class="pl-section-head__sub">The prompts people copy the most</p>
+      </div>
+      <a class="pl-viewall">View all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+    <div class="grid-3" id="popularGrid"></div>
+  </section>
+
+  <!-- ============ BROWSE BY TAG ============ -->
+  <section class="section">
+    <div class="pl-section-head">
+      <h2 class="pl-section-head__title">Browse by tag</h2>
+    </div>
+    <div class="tag-grid" id="tagGrid"></div>
+  </section>
+
+</main>
+
+<!-- ============ TWEAKS PANEL ============ -->
+<aside class="tweaks" id="tweaks" aria-label="Tweaks">
+  <div class="tweaks__head">
+    <h2 class="tweaks__title">Tweaks</h2>
+    <button class="tweaks__close" id="tweaksClose" aria-label="Close tweaks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="tweaks__body">
+    <div class="tweak-row">
+      <span class="tweak-row__label">Grid columns</span>
+      <div class="seg" id="segCols" role="group" aria-label="Grid columns">
+        <button class="seg__btn" data-cols="2">2 columns</button>
+        <button class="seg__btn" data-cols="3">3 columns</button>
+      </div>
+    </div>
+    <div class="tweak-row">
+      <span class="tweak-row__label">Accent</span>
+      <div class="tweak-accents" id="segAccent" role="group" aria-label="Accent color">
+        <button class="tweak-accent" data-accent="indigo" style="background:#4F46E5" title="Indigo"></button>
+        <button class="tweak-accent" data-accent="terracotta" style="background:#C2410C" title="Terracotta"></button>
+        <button class="tweak-accent" data-accent="forest" style="background:#15803D" title="Forest"></button>
+        <button class="tweak-accent" data-accent="slate" style="background:#1E40AF" title="Slate blue"></button>
+        <button class="tweak-accent" data-accent="plum" style="background:#9333EA" title="Plum"></button>
+      </div>
+    </div>
+    <div class="tweak-row">
+      <div class="tweak-toggle">
+        <span class="tweak-row__label" style="text-transform:none;letter-spacing:0;font-size:var(--text-sm);color:var(--text)">Rank numbers</span>
+        <button class="switch" id="toggleRanks" aria-pressed="true" aria-label="Show rank numbers on Most viewed"></button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ FOOTER ============ -->
+<footer class="pl-footer">
+  <div class="pl-footer__inner">
+    <a class="pl-wordmark" style="font-size:var(--text-base)" href="Home.html"><span class="pl-wordmark__mark">P</span> Prompt Library</a>
+    <nav class="pl-footer__links">
+      <a class="pl-footer__link">Browse</a>
+      <a class="pl-footer__link">Categories</a>
+      <a class="pl-footer__link">Submit a prompt</a>
+      <a class="pl-footer__link">About</a>
+    </nav>
+    <span class="pl-footer__copy">© 2026 Prompt Library</span>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   Content
+   ============================================================ */
+const RECENT = [
+  { title: 'Summarize a long article', preview: 'Summarize the article below in 5 bullet points, then one sentence a busy executive could act on. Keep it neutral.', tags: ['writing', 'analysis'], views: '1.2k' },
+  { title: 'Rewrite copy in a friendly tone', preview: 'Rewrite the text below to sound warm and conversational without losing meaning. Shorten long sentences. No exclamation marks.', tags: ['writing', 'marketing'], views: '2.4k' },
+  { title: 'Generate SQL from a question', preview: 'Given this schema, write a single SQL query that answers the question. Explain any joins in one line. Use clear aliases.', tags: ['coding', 'analysis'], views: '3.8k' },
+  { title: 'Turn notes into a brief', preview: 'Convert these rough notes into a one-page creative brief: objective, audience, key message, deliverables, timeline.', tags: ['marketing', 'productivity'], views: '980' },
+  { title: 'Debug this error', preview: 'Here is an error and the surrounding code. Explain the likely cause in plain language, then give the smallest fix.', tags: ['coding'], views: '1.7k' },
+  { title: 'Brainstorm product names', preview: 'Generate 20 short, brandable names for the product described below. Mix invented words and real words. No hyphens.', tags: ['creative', 'marketing'], views: '1.1k' },
+];
+
+const POPULAR = [
+  { title: 'Code review buddy', preview: 'Review this code for bugs, edge cases, and readability. List issues by severity, then suggest concrete fixes.', tags: ['coding'], views: '18.4k' },
+  { title: 'Explain it simply', preview: 'Explain the concept below to a smart 12-year-old. Use one everyday analogy. Define any term you can\'t avoid.', tags: ['writing', 'productivity'], views: '14.9k' },
+  { title: 'Meeting notes → action items', preview: 'From the transcript below, extract decisions and action items as a table: owner, task, due date. Flag anything unclear.', tags: ['productivity'], views: '12.2k' },
+  { title: 'Polish my email', preview: 'Rewrite this email to be clear, polite, and concise. Keep my voice. Suggest a subject line. Return only the email.', tags: ['writing'], views: '11.0k' },
+  { title: 'Plan a project', preview: 'Break the goal below into phases with milestones and rough estimates. Call out risks and dependencies up front.', tags: ['productivity', 'analysis'], views: '9.6k' },
+  { title: 'Write unit tests', preview: 'Write thorough unit tests for the function below. Cover happy path, edge cases, and failure modes. Name tests clearly.', tags: ['coding'], views: '8.7k' },
+];
+
+const TAGS = [
+  { name: 'writing', count: '312' },
+  { name: 'coding', count: '287' },
+  { name: 'marketing', count: '194' },
+  { name: 'productivity', count: '156' },
+  { name: 'analysis', count: '143' },
+  { name: 'creative', count: '128' },
+];
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+function escapeAttr(s){ return s.replace(/"/g,'&quot;'); }
+function tagPills(tags){ return tags.map(t => `<span class="pl-tag">${t}</span>`).join(''); }
+
+function cardStandard(p) {
+  return `
+  <article class="pl-card" tabindex="0" data-copy="${escapeAttr(p.preview)}">
+    <div class="pl-card__head">
+      <h3 class="pl-card__title">${p.title}</h3>
+      <button class="pl-copy-icon pl-card__copy" aria-label="Copy prompt" data-copy="${escapeAttr(p.preview)}">${COPY_ICON}</button>
+    </div>
+    <pre class="pl-card__preview">${p.preview}</pre>
+    <div class="pl-card__foot">
+      <div class="pl-card__tags">${tagPills(p.tags)}</div>
+      <span class="pl-meta">${EYE_ICON} ${p.views}</span>
+    </div>
+  </article>`;
+}
+
+function cardRanked(p, rank) {
+  return `
+  <article class="pl-card pl-card--ranked" tabindex="0" data-copy="${escapeAttr(p.preview)}">
+    <div class="pl-card__head">
+      <h3 class="pl-card__title"><span class="pl-card__rank">${String(rank).padStart(2,'0')}</span> &nbsp;${p.title}</h3>
+      <button class="pl-copy-icon pl-card__copy" aria-label="Copy prompt" data-copy="${escapeAttr(p.preview)}">${COPY_ICON}</button>
+    </div>
+    <pre class="pl-card__preview">${p.preview}</pre>
+    <div class="pl-card__foot">
+      <div class="pl-card__tags">${tagPills(p.tags)}</div>
+      <span class="pl-meta">${EYE_ICON} ${p.views} views</span>
+    </div>
+  </article>`;
+}
+
+function tagTile(t) {
+  return `<a class="tag-tile" href="Prompts.html#tag=${t.name}"><span class="tag-tile__name">${t.name}</span><span class="tag-tile__count">${t.count}</span></a>`;
+}
+
+document.getElementById('recentGrid').innerHTML = RECENT.map(cardStandard).join('');
+function renderPopular(showRanks) {
+  document.getElementById('popularGrid').innerHTML = showRanks
+    ? POPULAR.map((p,i) => cardRanked(p, i+1)).join('')
+    : POPULAR.map(cardStandard).join('');
+  bindCopy();
+  bindCardNav();
+}
+document.getElementById('tagGrid').innerHTML = TAGS.map(tagTile).join('');
+bindCopy();
+bindCardNav();
+
+/* ---- card navigation ---- */
+function bindCardNav() {
+  document.querySelectorAll('.pl-card').forEach(card => {
+    if (card.__navBound) return;
+    card.__navBound = true;
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.pl-copy-icon') || e.target.closest('.pl-tag')) return;
+      window.location.href = 'Detail.html';
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.href = 'Detail.html'; }
+    });
+  });
+}
+
+/* ---- copy interaction ---- */
+function bindCopy() {
+  document.querySelectorAll('[data-copy]').forEach(el => {
+    if (el.__copyBound) return;
+    el.__copyBound = true;
+    el.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-copy]');
+      if (btn !== el && el.classList.contains('pl-card')) return;
+      e.stopPropagation();
+      const text = el.getAttribute('data-copy');
+      if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+      if (btn && btn.classList.contains('pl-copy-icon')) {
+        btn.classList.add('is-copied');
+        const orig = btn.innerHTML;
+        btn.innerHTML = CHECK_ICON;
+        setTimeout(() => { btn.classList.remove('is-copied'); btn.innerHTML = orig; }, 1600);
+      }
+    });
+  });
+}
+bindCopy();
+
+/* ---- theme toggle (shared persistence key) ---- */
+const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('pl-theme', t);
+  document.getElementById('themeToggle').innerHTML = t === 'dark' ? MOON : SUN;
+}
+document.getElementById('themeToggle').addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+/* ---- init: restore shared theme & accent ---- */
+applyTheme(localStorage.getItem('pl-theme') || 'light');
+const ACCENTS = { indigo:['#4F46E5','#4338CA'], terracotta:['#C2410C','#9A3412'], forest:['#15803D','#166534'], slate:['#1E40AF','#1E3A8A'], plum:['#9333EA','#7E22CE'] };
+function applyAccent(id) {
+  const a = ACCENTS[id] || ACCENTS.indigo;
+  document.documentElement.style.setProperty('--accent', a[0]);
+  document.documentElement.style.setProperty('--accent-hover', a[1]);
+  localStorage.setItem('pl-accent', id);
+  document.querySelectorAll('.tweak-accent').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.accent === id)));
+}
+
+/* ============================================================
+   Tweaks
+   ============================================================ */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "columns": 2,
+  "accent": "plum",
+  "showRanks": true
+}/*EDITMODE-END*/;
+
+// shared accent overrides the saved tweak default if the user picked one elsewhere
+const startAccent = localStorage.getItem('pl-accent') || TWEAK_DEFAULTS.accent;
+
+const tweaks = { ...TWEAK_DEFAULTS, accent: startAccent };
+
+function persist(edits) {
+  window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+}
+function applyColumns(n) {
+  document.documentElement.style.setProperty('--home-cols', String(n));
+  document.querySelectorAll('#segCols .seg__btn').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.cols) === Number(n))));
+}
+function applyRanks(on) {
+  document.getElementById('toggleRanks').setAttribute('aria-pressed', String(on));
+  renderPopular(on);
+}
+
+// apply initial state
+applyColumns(tweaks.columns);
+applyAccent(tweaks.accent);
+applyRanks(tweaks.showRanks);
+
+// wire controls
+document.getElementById('segCols').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-cols]'); if (!btn) return;
+  tweaks.columns = Number(btn.dataset.cols); applyColumns(tweaks.columns); persist({ columns: tweaks.columns });
+});
+document.getElementById('segAccent').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-accent]'); if (!btn) return;
+  tweaks.accent = btn.dataset.accent; applyAccent(tweaks.accent); persist({ accent: tweaks.accent });
+});
+document.getElementById('toggleRanks').addEventListener('click', () => {
+  tweaks.showRanks = !tweaks.showRanks; applyRanks(tweaks.showRanks); persist({ showRanks: tweaks.showRanks });
+});
+
+/* ---- host protocol (listener first, then announce) ---- */
+const panel = document.getElementById('tweaks');
+window.addEventListener('message', (e) => {
+  const t = e.data && e.data.type;
+  if (t === '__activate_edit_mode') panel.classList.add('is-open');
+  else if (t === '__deactivate_edit_mode') panel.classList.remove('is-open');
+});
+window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+document.getElementById('tweaksClose').addEventListener('click', () => {
+  panel.classList.remove('is-open');
+  window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+});
+</script>
+</body>
+</html>
