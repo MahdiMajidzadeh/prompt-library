@@ -55,7 +55,7 @@
             <p class="pl-empty__text">Try a different word or check the spelling.</p>
         </div>
     @else
-        <div class="grid-3">
+        <div class="grid-2">
             @foreach ($prompts as $prompt)
                 <x-prompt-card :prompt="$prompt" wire:key="prompt-{{ $prompt->id }}" />
             @endforeach

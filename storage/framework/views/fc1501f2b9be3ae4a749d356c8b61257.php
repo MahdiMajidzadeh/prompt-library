@@ -71,12 +71,10 @@ unset($__defined_vars, $__key, $__value); ?>
         <a class="pl-wordmark" style="font-size: var(--text-base);" href="<?php echo e(url('/')); ?>">
             <span class="pl-wordmark__mark">P</span> Prompt Library
         </a>
-        <nav class="pl-footer__links">
-            <a class="pl-footer__link" href="<?php echo e(url('/')); ?>">Browse</a>
-            <a class="pl-footer__link" href="<?php echo e(url('/prompts/latest')); ?>">Latest</a>
-            <a class="pl-footer__link" href="<?php echo e(url('/prompts/most-viewed')); ?>">Most viewed</a>
-        </nav>
-        <span class="pl-footer__copy">© <?php echo e(date('Y')); ?> Prompt Library</span>
+        <span class="pl-footer__copy">
+            Developed with AI by
+            <a class="pl-footer__link" href="https://mahdi.majidzadeh.ir/" target="_blank" rel="noopener noreferrer">Mahdi Majidzadeh</a>
+        </span>
     </div>
 </footer>
 

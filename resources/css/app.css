@@ -416,9 +416,12 @@
         gap: var(--spacing-3);
     }
     .pl-card__title {
-        @apply m-0 text-md font-semibold;
+        @apply m-0 overflow-hidden text-md font-semibold;
         letter-spacing: var(--tracking-snug);
         line-height: var(--leading-snug);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
     }
     .pl-card__copy {
         opacity: 0;
@@ -727,6 +730,16 @@
     }
     @media (max-width: 600px) {
         .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ---------- 2-up grid (used on listing pages) ---------- */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-4);
+    }
+    @media (max-width: 600px) {
+        .grid-2 { grid-template-columns: 1fr; }
     }
 
     /* ---------- Ranked card (most viewed) ---------- */

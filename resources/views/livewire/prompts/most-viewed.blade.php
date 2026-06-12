@@ -19,7 +19,7 @@
             <p class="pl-empty__text">Check back soon, or browse the latest.</p>
         </div>
     @else
-        <div class="grid-3">
+        <div class="grid-2">
             @foreach ($prompts as $index => $prompt)
                 <x-prompt-card :prompt="$prompt" :rank="$index + 1" wire:key="prompt-{{ $prompt->id }}" />
             @endforeach
