@@ -8,7 +8,7 @@
 ## 0. Assumptions (correct before starting if wrong)
 
 - Laravel **12**, Livewire **3**, Bootstrap **5**. PHP 8.2+. MySQL/MariaDB.
-- **Design comes entirely from the `design-claude/` folder** in the project root. Do not invent colors, typography, spacing, or components. Read that folder first (Step 1.x) and reuse it for the layout shell and every page.
+- **Design comes entirely from the `claude-design/` folder** in the project root. Do not invent colors, typography, spacing, or components. Read that folder first (Step 1.x) and reuse it for the layout shell and every page.
 - **Views are recorded on the prompt detail page** (one detail page per prompt is in scope). The detail page is also where the full prompt text and the copy-to-clipboard action live.
 - **View counts are denormalized**: a `prompts.view_count` column is the source of truth for "most viewed" ordering, kept fresh by a scheduled command that aggregates raw rows from a separate `prompt_views` table.
 - **No public sign-up in this phase.** There is exactly one privileged role — **admin** — seeded manually. The data model is shaped so end-user sign-up can be added later with no destructive migration.
@@ -166,9 +166,9 @@ Apply the same pattern to `Prompts\MostViewed`, `Prompts\Latest`, `Tags\Show`, a
 
 ## 6. Admin Auth (minimal, Bootstrap-consistent)
 
-Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow we don't want, and would clash with `design-claude`).
+Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow we don't want, and would clash with `claude-design`).
 
-- Build a single `Auth\Login` Livewire component using the `Auth` facade (`Auth::attempt`, throttle attempts, regenerate session). Style with the `design-claude` form components.
+- Build a single `Auth\Login` Livewire component using the `Auth` facade (`Auth::attempt`, throttle attempts, regenerate session). Style with the `claude-design` form components.
 - Middleware `App\Http\Middleware\EnsureUserIsAdmin` (alias `admin`): allow only `auth()->user()?->is_admin`. Abort 403 otherwise. Register the alias in `bootstrap/app.php`.
 - All `/admin/*` routes: `->middleware(['auth', 'admin'])`. `/login`: `->middleware('guest')`.
 - `/logout`: POST, CSRF-protected, `Auth::logout()` + session invalidate + regenerate token.
@@ -176,10 +176,10 @@ Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow 
 
 ---
 
-## 7. Design Integration (`design-claude/`)
+## 7. Design Integration (`claude-design/`)
 
-- **Phase 0 is mandatory and blocking.** Inventory `design-claude/`: identify the page shell (header/nav/footer), card component(s) for a prompt, the tag/chip component, list/grid layout, buttons, form controls, empty/loading states, and the color + typography tokens. Note the Bootstrap version and any add-on (e.g. Webpixels) it uses.
-- Produce a short `DESIGN-MAP.md` (3–4 sentences + a table) mapping each app page/component to the `design-claude` source it's built from. This is the contract for visual QA.
+- **Phase 0 is mandatory and blocking.** Inventory `claude-design/`: identify the page shell (header/nav/footer), card component(s) for a prompt, the tag/chip component, list/grid layout, buttons, form controls, empty/loading states, and the color + typography tokens. Note the Bootstrap version and any add-on (e.g. Webpixels) it uses.
+- Produce a short `DESIGN-MAP.md` (3–4 sentences + a table) mapping each app page/component to the `claude-design` source it's built from. This is the contract for visual QA.
 - Build one shared Blade layout (`resources/views/components/layouts/app.blade.php`) from the design's shell and compose every page from the design's components. **No bespoke CSS** beyond what the design folder provides; if something's missing, reuse the nearest existing component rather than inventing one, and note the gap in `DESIGN-MAP.md`.
 - Asset pipeline: wire the design's CSS/JS through Vite as the folder dictates.
 
@@ -194,7 +194,7 @@ Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow 
 - [ ] Visiting a public prompt detail page inserts exactly one `prompt_views` row per qualifying view; running `prompts:aggregate-views` moves those into `prompts.view_count` and marks rows `counted`. Re-running the command does not double-count.
 - [ ] Most-viewed ordering reflects `view_count` after aggregation.
 - [ ] `/admin/*` is unreachable while logged out and for non-admin users (403/redirect). Admin can create/edit/delete prompts, create/edit tags (tags are never deleted), assign tags, and toggle public/private; the toggle's effect is immediately visible on the public side.
-- [ ] All pages render from `design-claude` components per `DESIGN-MAP.md`; no Tailwind, no invented design system.
+- [ ] All pages render from `claude-design` components per `DESIGN-MAP.md`; no Tailwind, no invented design system.
 - [ ] `php artisan migrate:fresh --seed` produces a working site with admin login and a realistic set of public + private prompts and tags.
 
 ---
@@ -220,14 +220,14 @@ Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow 
 - [ ] Run `php artisan livewire:publish --config` (only if you need to override defaults; otherwise skip).
 - **DoD:** `composer show livewire/livewire` prints a 3.x version; `php artisan` lists `livewire:*` commands.
 
-### Step 0.3 — Inventory the `design-claude/` folder
-- [ ] List every file in `design-claude/`. Identify the entry HTML, CSS, and JS files.
+### Step 0.3 — Inventory the `claude-design/` folder
+- [ ] List every file in `claude-design/`. Identify the entry HTML, CSS, and JS files.
 - [ ] Note: Bootstrap version, any add-on framework (e.g. Webpixels, Volt, etc.), the page shell (header/nav/footer), and the asset paths.
 - [ ] Identify the following components in the design: prompt card, tag/chip, list/grid container, buttons, form inputs, empty state, loading spinner.
 - [ ] Note the color tokens, typography, and spacing scale used.
 - **DoD:** You can name (in writing) the file(s) that contain each of the components above.
 
-### Step 0.4 — Wire `design-claude` assets through Vite
+### Step 0.4 — Wire `claude-design` assets through Vite
 - [ ] Update `vite.config.js` to include the design's CSS and JS entry points.
 - [ ] Update `package.json` to install any npm dependencies the design folder requires.
 - [ ] Run `npm install` and `npm run build` (or `npm run dev`) and confirm no errors.
@@ -242,7 +242,7 @@ Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow 
 ### Step 0.6 — Write `DESIGN-MAP.md`
 - [ ] Create `DESIGN-MAP.md` at the project root.
 - [ ] Include a 3–4 sentence intro describing the design source.
-- [ ] Add a table mapping each planned page (Home, Latest, MostViewed, Tags\Show, Search, Prompts\Show, Login, Admin\*) and each component (prompt card, tag chip, form, button, empty state, loader) to its `design-claude/` source file.
+- [ ] Add a table mapping each planned page (Home, Latest, MostViewed, Tags\Show, Search, Prompts\Show, Login, Admin\*) and each component (prompt card, tag chip, form, button, empty state, loader) to its `claude-design/` source file.
 - **DoD:** The file exists and every public/admin page in §2 has a row.
 
 ### Phase 0 commit
@@ -604,7 +604,7 @@ Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow 
 
 ### Step 6.7 — Visual QA against `DESIGN-MAP.md`
 - [ ] Walk through each public and admin page in the browser.
-- [ ] Confirm each matches its `design-claude` source per `DESIGN-MAP.md`.
+- [ ] Confirm each matches its `claude-design` source per `DESIGN-MAP.md`.
 - [ ] Note any gaps in `DESIGN-MAP.md` (do not invent new components).
 - **DoD:** All pages match the design contract.
 
