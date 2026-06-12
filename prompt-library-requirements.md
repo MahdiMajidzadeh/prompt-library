@@ -1,14 +1,14 @@
-# Prompt Library — Requirements & Build Plan
+# Prompt Library — Requirements & Step-by-Step Build Plan
 
 > **For:** Claude Code · **Stack:** Laravel 12 + Livewire 3 + Bootstrap 5
-> **Mode:** Execute the **Task List** at the bottom top-to-bottom. Each task has a Definition of Done. Do not skip ahead; later tasks assume earlier ones are complete and migrated.
+> **Mode:** Execute the **Step-by-Step Task List** at the bottom top-to-bottom. Each step is small and atomic with its own Definition of Done. Do not skip ahead; later steps assume earlier ones are complete and migrated.
 
 ---
 
 ## 0. Assumptions (correct before starting if wrong)
 
 - Laravel **12**, Livewire **3**, Bootstrap **5**. PHP 8.2+. MySQL/MariaDB.
-- **Design comes entirely from the `design-claude/` folder** in the project root. Do not invent colors, typography, spacing, or components. Read that folder first (Task 1) and reuse it for the layout shell and every page.
+- **Design comes entirely from the `design-claude/` folder** in the project root. Do not invent colors, typography, spacing, or components. Read that folder first (Step 1.x) and reuse it for the layout shell and every page.
 - **Views are recorded on the prompt detail page** (one detail page per prompt is in scope). The detail page is also where the full prompt text and the copy-to-clipboard action live.
 - **View counts are denormalized**: a `prompts.view_count` column is the source of truth for "most viewed" ordering, kept fresh by a scheduled command that aggregates raw rows from a separate `prompt_views` table.
 - **No public sign-up in this phase.** There is exactly one privileged role — **admin** — seeded manually. The data model is shaped so end-user sign-up can be added later with no destructive migration.
@@ -172,13 +172,13 @@ Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow 
 - Middleware `App\Http\Middleware\EnsureUserIsAdmin` (alias `admin`): allow only `auth()->user()?->is_admin`. Abort 403 otherwise. Register the alias in `bootstrap/app.php`.
 - All `/admin/*` routes: `->middleware(['auth', 'admin'])`. `/login`: `->middleware('guest')`.
 - `/logout`: POST, CSRF-protected, `Auth::logout()` + session invalidate + regenerate token.
-- Admin account is created by a seeder (§ Task 3), not by sign-up.
+- Admin account is created by a seeder (§ Phase 2), not by sign-up.
 
 ---
 
 ## 7. Design Integration (`design-claude/`)
 
-- **Task 1 is mandatory and blocking.** Inventory `design-claude/`: identify the page shell (header/nav/footer), card component(s) for a prompt, the tag/chip component, list/grid layout, buttons, form controls, empty/loading states, and the color + typography tokens. Note the Bootstrap version and any add-on (e.g. Webpixels) it uses.
+- **Phase 0 is mandatory and blocking.** Inventory `design-claude/`: identify the page shell (header/nav/footer), card component(s) for a prompt, the tag/chip component, list/grid layout, buttons, form controls, empty/loading states, and the color + typography tokens. Note the Bootstrap version and any add-on (e.g. Webpixels) it uses.
 - Produce a short `DESIGN-MAP.md` (3–4 sentences + a table) mapping each app page/component to the `design-claude` source it's built from. This is the contract for visual QA.
 - Build one shared Blade layout (`resources/views/components/layouts/app.blade.php`) from the design's shell and compose every page from the design's components. **No bespoke CSS** beyond what the design folder provides; if something's missing, reuse the nearest existing component rather than inventing one, and note the gap in `DESIGN-MAP.md`.
 - Asset pipeline: wire the design's CSS/JS through Vite as the folder dictates.
@@ -199,59 +199,425 @@ Do **not** install Breeze/Jetstream (they ship Tailwind and a registration flow 
 
 ---
 
-# TASK LIST (run in order)
+# STEP-BY-STEP TASK LIST (run in order)
 
-> Run migrations and re-run the app after each phase. Commit at the end of each phase. Tick boxes as you go.
+> Execute one step at a time. Each step ends with a verification command or check. Do not move to the next step until the current one's DoD is satisfied. Commit at the end of each phase.
 
-### Phase 0 — Bootstrap & design ingestion
-- [ ] **0.1** Confirm/install Laravel 12 project skeleton and Livewire 3 (`composer require livewire/livewire`). Confirm DB connection in `.env` and that `php artisan migrate` runs clean on the default tables.
-- [ ] **0.2** Read the entire `design-claude/` folder. Identify shell, components, tokens, Bootstrap version, and any add-on framework.
-- [ ] **0.3** Wire the design's CSS/JS into Vite. Build the shared layout `components/layouts/app.blade.php` from the design's shell (header/nav/footer). Verify a blank page renders with correct fonts/colors.
-- [ ] **0.4** Write `DESIGN-MAP.md` mapping planned pages/components → design sources.
-- **DoD:** App boots; a placeholder page renders inside the real design shell; `DESIGN-MAP.md` exists.
+---
 
-### Phase 1 — Data model
-- [ ] **1.1** Migrations: `create_prompts_table`, `create_tags_table`, `create_prompt_tag_table`, `create_prompt_views_table`, and a migration adding `is_admin` to `users`. Include all columns, indexes, FKs, and the composite unique on the pivot per §3.
-- [ ] **1.2** Models `Prompt`, `Tag`, `PromptView` with relationships, casts, `scopePublic`, unique-slug generation, and `Prompt::recordView()`. Route-model-bind `Prompt` and `Tag` by `slug`. Add `is_admin` cast on `User`.
-- [ ] **1.3** Factories: `PromptFactory` (varied titles/bodies, mix of public/private, random `view_count` left at 0 — counts come from views; **`user_id` defaults to `User::factory()->admin()`** so the not-null FK is satisfied when used standalone in tests), `TagFactory`.
-- [ ] **1.4** `php artisan migrate:fresh` succeeds; tinker-create a prompt with tags to verify the relationship and slug uniqueness.
-- **DoD:** Schema migrates clean; relationships and slug generation verified in tinker.
+## Phase 0 — Bootstrap & Design Ingestion
 
-### Phase 2 — Seeders & admin account
-- [ ] **2.1** `AdminUserSeeder`: one user, `is_admin = true`, credentials read from `.env` (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) with safe documented defaults.
-- [ ] **2.2** `TagSeeder` (a realistic set of prompt-library tags) and `PromptSeeder` (use the factory; **own every prompt with the seeded admin's `user_id`**; attach 1–4 tags each; mix of public/private; insert several `prompt_views` rows for some prompts so aggregation has data to fold). Runs after `AdminUserSeeder` so the owner exists.
-- [ ] **2.3** Register all seeders in `DatabaseSeeder`. `php artisan migrate:fresh --seed` works end to end.
-- **DoD:** Seeded DB has an admin, tags, public+private prompts, and some raw view rows.
+### Step 0.1 — Verify Laravel skeleton boots
+- [ ] Run `php -v` and confirm PHP ≥ 8.2.
+- [ ] Run `php artisan --version` and confirm Laravel 12.x.
+- [ ] Open `.env` and confirm `DB_*` keys point to a working MySQL/MariaDB database.
+- [ ] Run `php artisan migrate` against the default Laravel tables.
+- **DoD:** `php artisan migrate` exits 0; default tables exist.
 
-### Phase 3 — View tracking & cron
-- [ ] **3.1** Implement `Prompt::recordView()` with the **30-second `visitor_hash` (IP + user agent) dedupe** from §4 (P0): skip the insert when an identical-fingerprint row for the same prompt exists within the last 30s; never let the check block the page render.
-- [ ] **3.2** Command `prompts:aggregate-views` using the incremental algorithm in §4, transaction-wrapped, with a summary log line and the full-recompute alternative noted in a comment.
-- [ ] **3.3** Schedule it `everyFiveMinutes()->withoutOverlapping()`. Document the server cron line and `schedule:work` in `README.md`.
-- [ ] **3.4** Test: seed raw views → run command → assert `view_count` matches and rows are `counted`; run again → assert no double-count.
-- **DoD:** Aggregation is correct, idempotent, scheduled, and documented.
+### Step 0.2 — Install Livewire 3
+- [ ] Run `composer require livewire/livewire`.
+- [ ] Confirm `livewire/livewire` version `^3.x` in `composer.json`.
+- [ ] Run `php artisan livewire:publish --config` (only if you need to override defaults; otherwise skip).
+- **DoD:** `composer show livewire/livewire` prints a 3.x version; `php artisan` lists `livewire:*` commands.
 
-### Phase 4 — Public read-side
-- [ ] **4.1** Build the shared `WithInfiniteScroll` concern (§5).
-- [ ] **4.2** `Prompts\Latest` and `Prompts\MostViewed` full-page components with infinite scroll, ordering by `created_at` desc and `view_count` desc respectively, **public scope only**, built from design cards.
-- [ ] **4.3** `Tags\Show` — public prompts for `{tag:slug}`, infinite scroll, 404 on unknown tag, tag name shown as the page heading.
-- [ ] **4.4** `Search` — title-OR-tag query (§5 specifics), debounced live input, `#[Url]` on `q`, empty + no-results states, infinite scroll.
-- [ ] **4.5** `Prompts\Show` — full prompt (title, whitespace-preserved body, clickable tags, view count), **records a view on mount**, **404 if private**, copy-to-clipboard button on the body (Alpine + Clipboard API) with copied feedback.
-- [ ] **4.6** `Home` — most-viewed (top 6), latest (6 most recent), and **tags that have at least one public prompt** (exclude empty tags); each section links to its listing/tag page. No pagination here.
-- [ ] **4.7** Manually verify a private prompt is invisible everywhere public and its detail URL 404s.
-- **DoD:** Every public page works, paginates on scroll, enforces public scope, and uses design components.
+### Step 0.3 — Inventory the `design-claude/` folder
+- [ ] List every file in `design-claude/`. Identify the entry HTML, CSS, and JS files.
+- [ ] Note: Bootstrap version, any add-on framework (e.g. Webpixels, Volt, etc.), the page shell (header/nav/footer), and the asset paths.
+- [ ] Identify the following components in the design: prompt card, tag/chip, list/grid container, buttons, form inputs, empty state, loading spinner.
+- [ ] Note the color tokens, typography, and spacing scale used.
+- **DoD:** You can name (in writing) the file(s) that contain each of the components above.
 
-### Phase 5 — Admin back office
-- [ ] **5.1** `EnsureUserIsAdmin` middleware + alias; `Auth\Login` (throttled) and `/logout`; route groups (`/admin/*` → `auth,admin`; `/login` → `guest`).
-- [ ] **5.2** `Admin\Dashboard` with the four counts.
-- [ ] **5.3** `Admin\Prompts\Index` — list all prompts, search/filter, public/private badge with inline toggle, edit/delete, create button (admin-only paginator is fine).
-- [ ] **5.4** `Admin\Prompts\Form` — create/edit: title, body (textarea), tag multi-select, public/private; **on create set `user_id = auth()->id()`** (owner = the acting admin); validation; delete with confirm. (Create-tag-inline is P1.)
-- [ ] **5.5** `Admin\Tags\Index` + `Admin\Tags\Form` — create + edit tags with prompt counts. **No delete** — tags are never deleted; do not add a delete action or route.
-- [ ] **5.6** Verify: logged-out and non-admin users are blocked from `/admin/*`; toggling a prompt to public makes it appear publicly (after no cron dependency — public scope is immediate).
-- **DoD:** Admin can fully manage prompts and tags; access control holds; public/private toggle works.
+### Step 0.4 — Wire `design-claude` assets through Vite
+- [ ] Update `vite.config.js` to include the design's CSS and JS entry points.
+- [ ] Update `package.json` to install any npm dependencies the design folder requires.
+- [ ] Run `npm install` and `npm run build` (or `npm run dev`) and confirm no errors.
+- **DoD:** `public/build/` (or the configured output dir) contains the compiled design assets.
 
-### Phase 6 — Tests & QA
-- [ ] **6.1** Feature tests (Pest or PHPUnit): public scope hides private prompts across all public routes; search matches title and tag but not body; a detail-page view inserts a row, and a repeat view from the same IP + user agent within 30s does **not** (dedupe); aggregation is correct and idempotent; `/admin` access control; admin CRUD happy paths.
-- [ ] **6.2** Visual QA against `DESIGN-MAP.md` — every page matches its design source; flag any gaps.
-- [ ] **6.3** `README.md`: setup, `.env` keys (incl. admin + schedule), seeding, cron line, and the design-folder dependency.
-- [ ] **6.4** Final pass: `php artisan migrate:fresh --seed`, click through every route logged-out and as admin, run `prompts:aggregate-views`, confirm all §8 acceptance criteria.
-- **DoD:** Tests pass; QA clean; README complete; all acceptance criteria met.
+### Step 0.5 — Build the shared Blade layout
+- [ ] Create `resources/views/components/layouts/app.blade.php` using the header/nav/footer shell from the design.
+- [ ] Reference the Vite-built assets via `@vite([...])`.
+- [ ] Add a `{{ $slot }}` for page content.
+- **DoD:** A throwaway route `/` returning `<x-layouts.app>Hello</x-layouts.app>` renders the design shell with correct fonts/colors in the browser.
+
+### Step 0.6 — Write `DESIGN-MAP.md`
+- [ ] Create `DESIGN-MAP.md` at the project root.
+- [ ] Include a 3–4 sentence intro describing the design source.
+- [ ] Add a table mapping each planned page (Home, Latest, MostViewed, Tags\Show, Search, Prompts\Show, Login, Admin\*) and each component (prompt card, tag chip, form, button, empty state, loader) to its `design-claude/` source file.
+- **DoD:** The file exists and every public/admin page in §2 has a row.
+
+### Phase 0 commit
+- [ ] `git add -A && git commit -m "phase 0: design ingestion and layout shell"`
+
+---
+
+## Phase 1 — Data Model
+
+### Step 1.1 — Migration: `prompts` table
+- [ ] Create `database/migrations/xxxx_create_prompts_table.php` per §3.1.
+- [ ] Columns: `id`, `title` (string 255), `slug` (string 16, unique), `body` (longText), `is_public` (bool default false, indexed), `view_count` (unsignedBigInteger default 0, indexed), `user_id` (foreignId, not null, `restrictOnDelete`), `timestamps`.
+- [ ] Composite indexes: `(is_public, view_count)`, `(is_public, created_at)`.
+- **DoD:** Migration file written; do not migrate yet.
+
+### Step 1.2 — Migration: `tags` table
+- [ ] Create `database/migrations/xxxx_create_tags_table.php` per §3.2.
+- [ ] Columns: `id`, `name` (string 100, unique), `slug` (string 120, unique), `timestamps`.
+- **DoD:** Migration file written.
+
+### Step 1.3 — Migration: `prompt_tag` pivot
+- [ ] Create `database/migrations/xxxx_create_prompt_tag_table.php` per §3.3.
+- [ ] Columns: `prompt_id` (foreignId, `cascadeOnDelete`), `tag_id` (foreignId, `cascadeOnDelete`).
+- [ ] Composite unique index `(prompt_id, tag_id)`. No timestamps.
+- **DoD:** Migration file written.
+
+### Step 1.4 — Migration: `prompt_views` table
+- [ ] Create `database/migrations/xxxx_create_prompt_views_table.php` per §3.4.
+- [ ] Columns: `id`, `prompt_id` (foreignId, `cascadeOnDelete`, indexed), `counted` (bool default false, indexed), `visitor_hash` (string 64, nullable), `user_id` (foreignId, nullable, `nullOnDelete`), `created_at` only.
+- [ ] Composite index `(prompt_id, visitor_hash)` to keep the dedupe lookup cheap.
+- **DoD:** Migration file written.
+
+### Step 1.5 — Migration: add `is_admin` to `users`
+- [ ] Create `database/migrations/xxxx_add_is_admin_to_users_table.php`.
+- [ ] Add `is_admin` (bool default false, indexed) in `up()`; drop in `down()`.
+- **DoD:** Migration file written.
+
+### Step 1.6 — Run all migrations
+- [ ] Run `php artisan migrate:fresh`.
+- [ ] Confirm all five tables exist with expected columns and indexes (`SHOW INDEX FROM prompts;` etc.).
+- **DoD:** `migrate:fresh` exits 0; schema verified.
+
+### Step 1.7 — `Prompt` model
+- [ ] Create `app/Models/Prompt.php` with: `$fillable`, `is_public` boolean cast, relations (`tags` belongsToMany, `views` hasMany, `user` belongsTo).
+- [ ] Add `scopePublic($q)` → `where('is_public', true)`.
+- [ ] Add `getRouteKeyName(): string` returning `'slug'`.
+- [ ] In a `booted()` hook, generate a unique random 16-char alphanumeric slug on `creating` using `Str::random(16)` with a uniqueness loop.
+- [ ] Add `recordView(?string $visitorHash = null): void` — implementation stubbed; full dedupe logic in Phase 3.
+- **DoD:** `app(\App\Models\Prompt::class)` instantiates without error; `Prompt::factory()` (added next phase) will work.
+
+### Step 1.8 — `Tag` model
+- [ ] Create `app/Models/Tag.php` with: `$fillable`, relations (`prompts` belongsToMany).
+- [ ] Add `getRouteKeyName(): string` returning `'slug'`.
+- [ ] In a `booted()` hook on `creating`/`updating`, generate a unique slug from `name` using `Str::slug($name)` + uniqueness loop (append `-2`, `-3`, … on collision).
+- **DoD:** Model instantiates; slug derives correctly in tinker.
+
+### Step 1.9 — `PromptView` model
+- [ ] Create `app/Models/PromptView.php`.
+- [ ] Disable `updated_at`: set `const UPDATED_AT = null;` or override `$timestamps = false` for `updated_at` only (use `public $timestamps = true;` plus override).
+- [ ] Add `$fillable`: `prompt_id`, `counted`, `visitor_hash`, `user_id`.
+- [ ] Relations: `prompt` belongsTo, `user` belongsTo.
+- **DoD:** Model instantiates; inserting a row in tinker writes `created_at` only.
+
+### Step 1.10 — Update `User` model
+- [ ] In `app/Models/User.php`, add `is_admin` to `$fillable` and cast to `boolean`.
+- [ ] Add `prompts()` `hasMany` relation.
+- **DoD:** `User::factory()->create(['is_admin' => true])` writes `is_admin=1`.
+
+### Step 1.11 — Factories
+- [ ] Create `database/factories/PromptFactory.php`: varied `title` (sentence), `body` (paragraphs), `is_public` (50/50 mix), `view_count` left at 0; default `user_id` to `User::factory()->create(['is_admin' => true])->id` (or a state `->admin()`).
+- [ ] Create `database/factories/TagFactory.php`: unique `name` (word), `slug` auto via the model hook.
+- [ ] Add a `UserFactory::admin()` state setting `is_admin = true`.
+- **DoD:** `Prompt::factory()->create()` succeeds standalone.
+
+### Step 1.12 — Tinker smoke test
+- [ ] Run `php artisan tinker`.
+- [ ] Execute `$p = Prompt::factory()->create();` — note the random 16-char slug.
+- [ ] Execute `$t = Tag::factory()->create(['name' => 'Coding']);` — note slug = `coding`.
+- [ ] Execute `$p->tags()->attach($t->id);` and `$p->fresh()->tags->pluck('name');`.
+- [ ] Execute `Prompt::factory()->count(50)->create();` and confirm no slug collision errors.
+- **DoD:** Relations work; slug generation works.
+
+### Phase 1 commit
+- [ ] `git add -A && git commit -m "phase 1: data model, migrations, models, factories"`
+
+---
+
+## Phase 2 — Seeders & Admin Account
+
+### Step 2.1 — `AdminUserSeeder`
+- [ ] Create `database/seeders/AdminUserSeeder.php`.
+- [ ] Read `ADMIN_EMAIL` and `ADMIN_PASSWORD` from env with documented defaults (e.g. `admin@example.test` / `password`).
+- [ ] `User::updateOrCreate` with `is_admin = true` and `password = Hash::make(...)`.
+- [ ] Document the env keys in `.env.example`.
+- **DoD:** Running the seeder creates one admin user.
+
+### Step 2.2 — `TagSeeder`
+- [ ] Create `database/seeders/TagSeeder.php`.
+- [ ] Seed a realistic set of ~15 tags (e.g. `Writing`, `Coding`, `Marketing`, `Research`, `Productivity`, `Education`, `Design`, `Analysis`, `Brainstorming`, `Email`, `SQL`, `Debugging`, `Refactoring`, `Documentation`, `Testing`).
+- **DoD:** Seeder runs; `tags` table has the expected rows.
+
+### Step 2.3 — `PromptSeeder`
+- [ ] Create `database/seeders/PromptSeeder.php`.
+- [ ] Fetch the seeded admin's `id`.
+- [ ] Create ~30 prompts via factory with `user_id = $admin->id`.
+- [ ] For each prompt, attach 1–4 random tags.
+- [ ] Mark roughly 80% as `is_public = true`, the rest private.
+- [ ] For ~10 random public prompts, insert 5–50 raw `prompt_views` rows each (vary `created_at` over the last week, leave `counted = false`).
+- **DoD:** Seeder runs after `AdminUserSeeder`; counts look right in tinker.
+
+### Step 2.4 — Register seeders in `DatabaseSeeder`
+- [ ] In `database/seeders/DatabaseSeeder.php`, call `AdminUserSeeder`, then `TagSeeder`, then `PromptSeeder` in that order.
+- **DoD:** Order is correct (admin before prompts).
+
+### Step 2.5 — Full seed run
+- [ ] Run `php artisan migrate:fresh --seed`.
+- [ ] Confirm in tinker: one admin user, ~15 tags, ~30 prompts (mix public/private), several hundred `prompt_views` rows.
+- **DoD:** End-to-end seed completes without errors.
+
+### Phase 2 commit
+- [ ] `git add -A && git commit -m "phase 2: seeders and admin account"`
+
+---
+
+## Phase 3 — View Tracking & Cron
+
+### Step 3.1 — Implement `Prompt::recordView()` dedupe
+- [ ] Open `app/Models/Prompt.php`.
+- [ ] In `recordView(?string $visitorHash = null)`: wrap the body in `try { ... } catch (\Throwable $e) { return; }` so failures never break the page.
+- [ ] Query `PromptView::where('prompt_id', $this->id)->where('visitor_hash', $visitorHash)->where('created_at', '>=', now()->subSeconds(30))->exists()`. If true, return.
+- [ ] Otherwise `PromptView::create(['prompt_id' => $this->id, 'visitor_hash' => $visitorHash, 'counted' => false])`.
+- **DoD:** Calling `$p->recordView('abc')` twice within 30s creates one row; after 30s a second call creates a second row.
+
+### Step 3.2 — `AggregatePromptViews` command
+- [ ] Run `php artisan make:command AggregatePromptViews`.
+- [ ] Set `$signature = 'prompts:aggregate-views'`.
+- [ ] In `handle()`:
+  - Snapshot `$maxId = PromptView::where('counted', false)->max('id') ?? 0;` — bounds the run.
+  - Select grouped counts: `PromptView::where('counted', false)->where('id', '<=', $maxId)->groupBy('prompt_id')->selectRaw('prompt_id, COUNT(*) as c')->get()`.
+  - For each group, in a `DB::transaction(function () { ... })`:
+    - `Prompt::where('id', $group->prompt_id)->increment('view_count', $group->c);`
+    - `PromptView::where('prompt_id', $group->prompt_id)->where('counted', false)->where('id', '<=', $maxId)->update(['counted' => true]);`
+  - Log `info("Aggregated views: prompts={prompts}, rows={rows}")`.
+- [ ] Add a code comment with the full-recompute alternative SQL.
+- **DoD:** `php artisan prompts:aggregate-views` runs without errors.
+
+### Step 3.3 — Schedule the command
+- [ ] Open `routes/console.php` (Laravel 12 style).
+- [ ] Add `Schedule::command('prompts:aggregate-views')->everyFiveMinutes()->withoutOverlapping();`.
+- **DoD:** `php artisan schedule:list` shows the entry.
+
+### Step 3.4 — Document the cron entry
+- [ ] In `README.md`, document the server cron line: `* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1`.
+- [ ] Document local-dev usage: `php artisan schedule:work`.
+- [ ] State that "most viewed" counts may lag up to ~5 minutes.
+- **DoD:** README section exists.
+
+### Step 3.5 — Idempotency test (manual)
+- [ ] Run `php artisan migrate:fresh --seed`.
+- [ ] Note the `view_count` on a few prompts (should be 0).
+- [ ] Note the count of `prompt_views` rows where `counted=false`.
+- [ ] Run `php artisan prompts:aggregate-views`.
+- [ ] Confirm: `prompts.view_count` now reflects raw view counts; all `prompt_views.counted = true`.
+- [ ] Run the command again. Confirm: no `view_count` changes; no double-count.
+- **DoD:** Aggregation is correct and idempotent.
+
+### Phase 3 commit
+- [ ] `git add -A && git commit -m "phase 3: view tracking and aggregation"`
+
+---
+
+## Phase 4 — Public Read-Side
+
+### Step 4.1 — `WithInfiniteScroll` trait
+- [ ] Create `app/Livewire/Concerns/WithInfiniteScroll.php`.
+- [ ] Properties: `public int $perPage = 12;`, `public int $pageSize = 12;`.
+- [ ] Method: `public function loadMore(): void { $this->perPage += $this->pageSize; }`.
+- [ ] Method: `protected function resetPagination(): void { $this->perPage = $this->pageSize; }`.
+- **DoD:** Trait file exists and is importable.
+
+### Step 4.2 — Shared `prompt-card` Blade component
+- [ ] Create `resources/views/components/prompt-card.blade.php` from the design's card source.
+- [ ] Props: `$prompt`. Renders title (linked to detail), tags (each linked to its tag page), view count, truncated body preview.
+- **DoD:** Component renders correctly with a seeded prompt.
+
+### Step 4.3 — Shared `load-more-sentinel` Blade component
+- [ ] Create `resources/views/components/load-more-sentinel.blade.php`.
+- [ ] Renders the `wire:loading` spinner, a `<button wire:click="loadMore">Load more</button>` fallback, and a `<div x-intersect="$wire.loadMore()">` sentinel.
+- [ ] Props: `$hasMore` (bool). Only render when true.
+- **DoD:** Component renders.
+
+### Step 4.4 — `Prompts\Latest` component
+- [ ] Run `php artisan make:livewire Prompts/Latest`.
+- [ ] Use the `WithInfiniteScroll` trait.
+- [ ] In `render()`: `Prompt::public()->with('tags')->latest()->take($this->perPage)->get()` + total count via separate query.
+- [ ] Blade: iterate `<x-prompt-card>`s in the design's grid layout; include `<x-load-more-sentinel :has-more="$hasMore">`.
+- [ ] Add route `Route::get('/prompts/latest', Latest::class)->name('prompts.latest');`.
+- **DoD:** Page loads, shows 12 latest public prompts, scrolling loads more.
+
+### Step 4.5 — `Prompts\MostViewed` component
+- [ ] Run `php artisan make:livewire Prompts/MostViewed`.
+- [ ] Same as Step 4.4 but order by `view_count` desc.
+- [ ] Add route `Route::get('/prompts/most-viewed', MostViewed::class)->name('prompts.most-viewed');`.
+- **DoD:** Page loads with correct order; scroll loads more.
+
+### Step 4.6 — `Tags\Show` component
+- [ ] Run `php artisan make:livewire Tags/Show`.
+- [ ] Property: `public Tag $tag;` with `mount(Tag $tag)` route-model-binding by slug.
+- [ ] Query: `$this->tag->prompts()->public()->latest()->take($this->perPage)->get()`.
+- [ ] Show tag name as heading.
+- [ ] Add route `Route::get('/tags/{tag:slug}', Show::class)->name('tags.show');`. Auto-404 on unknown.
+- **DoD:** `/tags/coding` shows public prompts tagged Coding; `/tags/nope` 404s.
+
+### Step 4.7 — `Search` component
+- [ ] Run `php artisan make:livewire Search`.
+- [ ] Property: `#[Url] public string $q = '';` and `wire:model.live.debounce.400ms` on the input.
+- [ ] In `updatedQ()`, reset pagination.
+- [ ] Query: `Prompt::public()->where(fn($qq) => $qq->where('title', 'like', "%{$this->q}%")->orWhereHas('tags', fn($t) => $t->where('name', 'like', "%{$this->q}%")))->distinct()->latest()->take($this->perPage)->get()`. Skip the query (or return empty) when `$q` is empty.
+- [ ] Empty state when `$q === ''`; "no results" when query non-empty but result empty.
+- [ ] Add route `Route::get('/search', Search::class)->name('search');`.
+- **DoD:** Typing a query updates the URL and results; results never match on body.
+
+### Step 4.8 — `Prompts\Show` component
+- [ ] Run `php artisan make:livewire Prompts/Show`.
+- [ ] Property: `public Prompt $prompt;`.
+- [ ] In `mount(Prompt $prompt)`: route-model-bound by slug. If `!$prompt->is_public` then `abort(404);`. Otherwise compute `$visitorHash = hash('sha256', request()->ip() . '|' . request()->userAgent())` and call `$prompt->recordView($visitorHash)`.
+- [ ] Eager-load tags.
+- [ ] Blade: title, body wrapped to preserve whitespace (use `<pre>` styled or `white-space: pre-wrap`), tags as clickable chips, view count, copy-to-clipboard button (Alpine + `navigator.clipboard.writeText`) with "Copied!" feedback for 1.5s.
+- [ ] Add route `Route::get('/prompts/{prompt:slug}', Show::class)->name('prompts.show');`.
+- **DoD:** Public prompt detail loads, records view, copy button works. Private prompt detail 404s.
+
+### Step 4.9 — `Home` component
+- [ ] Run `php artisan make:livewire Home`.
+- [ ] In `render()`: query top 6 most-viewed (public), 6 latest (public), and tags with `whereHas('prompts', fn($q) => $q->public())` (excludes empty tags).
+- [ ] Blade: three sections, each with a "See all" link to its corresponding listing/tag listing page.
+- [ ] Add route `Route::get('/', Home::class)->name('home');` (replace the default welcome).
+- **DoD:** Homepage shows the three sections; empty tags hidden.
+
+### Step 4.10 — Manual public-scope verification
+- [ ] Pick a private prompt's slug from the DB.
+- [ ] Visit `/prompts/{that-slug}` → expect 404.
+- [ ] Confirm the private prompt does not appear on `/`, `/prompts/latest`, `/prompts/most-viewed`, any tag page, or in `/search` results for its title.
+- **DoD:** Private content is invisible on every public route.
+
+### Phase 4 commit
+- [ ] `git add -A && git commit -m "phase 4: public read-side"`
+
+---
+
+## Phase 5 — Admin Back Office
+
+### Step 5.1 — `EnsureUserIsAdmin` middleware
+- [ ] Create `app/Http/Middleware/EnsureUserIsAdmin.php`.
+- [ ] In `handle()`, if `! auth()->user()?->is_admin` → `abort(403)`. Else `return $next($request);`.
+- [ ] Register the alias `admin` in `bootstrap/app.php` via `$middleware->alias([...])`.
+- **DoD:** `Route::get('/test', fn() => 'ok')->middleware('admin')` returns 403 for non-admins.
+
+### Step 5.2 — `Auth\Login` component
+- [ ] Run `php artisan make:livewire Auth/Login`.
+- [ ] Properties: `public string $email = ''; public string $password = '';`.
+- [ ] Method `submit()`: validate; call `Auth::attempt(['email' => $this->email, 'password' => $this->password])`; on success regenerate session and redirect to `/admin`; on failure throw `ValidationException`.
+- [ ] Add `RateLimiter::tooManyAttempts()` throttling (5/min keyed by IP+email).
+- [ ] Blade uses design's form components.
+- [ ] Add route `Route::get('/login', Login::class)->middleware('guest')->name('login');`.
+- **DoD:** Correct credentials redirect to `/admin`; wrong credentials show an error; 6th rapid attempt is throttled.
+
+### Step 5.3 — Logout route
+- [ ] In `routes/web.php`: `Route::post('/logout', function () { Auth::logout(); request()->session()->invalidate(); request()->session()->regenerateToken(); return redirect('/login'); })->name('logout');`.
+- [ ] Logout button (form POST with CSRF) in the admin layout/nav.
+- **DoD:** POST `/logout` ends the session and redirects.
+
+### Step 5.4 — Admin route group
+- [ ] Wrap all admin routes in `Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () { ... });`.
+- **DoD:** Hitting `/admin/*` while logged out redirects to `/login`.
+
+### Step 5.5 — `Admin\Dashboard`
+- [ ] Run `php artisan make:livewire Admin/Dashboard`.
+- [ ] In `render()`: counts of public prompts, private prompts, tags, total `prompt_views` rows.
+- [ ] Add route inside the admin group: `Route::get('/', Dashboard::class)->name('dashboard');`.
+- **DoD:** `/admin` shows four counts.
+
+### Step 5.6 — `Admin\Prompts\Index`
+- [ ] Run `php artisan make:livewire Admin/Prompts/Index`.
+- [ ] Properties: `public string $q = ''; public ?bool $publicFilter = null;`.
+- [ ] In `render()`: paginated (`paginate(20)`) query with optional title-like filter and public/private filter.
+- [ ] Blade table: columns title, tags, public/private badge, views, created_at, actions (edit, delete with confirm).
+- [ ] Add "Create" button linking to `admin.prompts.create`.
+- [ ] Inline public/private toggle: `wire:click="togglePublic({{ $prompt->id }})"` updating the row and re-rendering.
+- [ ] Add route: `Route::get('/prompts', Index::class)->name('prompts.index');`.
+- **DoD:** Admin sees all prompts; filter works; toggle flips `is_public` and shows the new state.
+
+### Step 5.7 — `Admin\Prompts\Form` (create + edit)
+- [ ] Run `php artisan make:livewire Admin/Prompts/Form`.
+- [ ] Properties: `public ?Prompt $prompt = null; public string $title = ''; public string $body = ''; public bool $is_public = false; public array $tagIds = [];`.
+- [ ] `mount(Prompt $prompt = null)`: if editing, hydrate fields; if creating, leave blank.
+- [ ] `render()`: pass `Tag::orderBy('name')->get()` to the view for the multi-select.
+- [ ] `save()`: validate; if creating set `user_id = auth()->id()`; persist; sync tags; redirect to `admin.prompts.index` with a flash message.
+- [ ] `delete()`: confirm via Alpine `confirm()`; delete; redirect.
+- [ ] Add routes: `Route::get('/prompts/create', Form::class)->name('prompts.create');` and `Route::get('/prompts/{prompt}/edit', Form::class)->name('prompts.edit');`.
+- **DoD:** Create flow stores a row with the acting admin as owner; edit updates; delete removes.
+
+### Step 5.8 — `Admin\Tags\Index`
+- [ ] Run `php artisan make:livewire Admin/Tags/Index`.
+- [ ] In `render()`: `Tag::withCount('prompts')->orderBy('name')->paginate(50)`.
+- [ ] Blade: table with name, slug, prompt count, edit link. **No delete button or route.**
+- [ ] Add route: `Route::get('/tags', Index::class)->name('tags.index');`.
+- **DoD:** Tags list renders with counts; no delete action anywhere.
+
+### Step 5.9 — `Admin\Tags\Form` (create + edit)
+- [ ] Run `php artisan make:livewire Admin/Tags/Form`.
+- [ ] Properties: `public ?Tag $tag = null; public string $name = '';`.
+- [ ] `mount(Tag $tag = null)`: hydrate on edit.
+- [ ] `save()`: validate `name` unique (ignore self on edit); persist; redirect.
+- [ ] Add routes: `Route::get('/tags/create', Form::class)->name('tags.create');` and `Route::get('/tags/{tag}/edit', Form::class)->name('tags.edit');`.
+- **DoD:** Admin can create and edit tags; slug auto-generates; no delete.
+
+### Step 5.10 — Manual admin-access verification
+- [ ] Log out; visit `/admin` → expect redirect to `/login`.
+- [ ] Log in as the admin → expect access.
+- [ ] Create a new public prompt; visit `/prompts/{slug}` in another tab → it appears publicly immediately.
+- [ ] Toggle it to private; refresh the public detail page → 404; refresh `/prompts/latest` → it's gone.
+- **DoD:** Access control holds; toggle is immediate.
+
+### Phase 5 commit
+- [ ] `git add -A && git commit -m "phase 5: admin back office"`
+
+---
+
+## Phase 6 — Tests & QA
+
+### Step 6.1 — Public scope tests
+- [ ] Create `tests/Feature/PublicScopeTest.php`.
+- [ ] Tests: home hides private; `/prompts/latest`, `/prompts/most-viewed`, `/tags/{slug}`, `/search` all hide private; `/prompts/{private-slug}` 404s.
+- **DoD:** Tests pass.
+
+### Step 6.2 — Search tests
+- [ ] Create `tests/Feature/SearchTest.php`.
+- [ ] Tests: matches by title; matches by tag name; **does not** match a unique word found only in the body.
+- **DoD:** Tests pass.
+
+### Step 6.3 — View tracking tests
+- [ ] Create `tests/Feature/ViewTrackingTest.php`.
+- [ ] Tests: visiting a public detail page inserts one row; a second visit with the same IP+UA within 30s inserts none; after 30s a second visit inserts one; private page does not insert a row (it 404s).
+- **DoD:** Tests pass.
+
+### Step 6.4 — Aggregation tests
+- [ ] Create `tests/Feature/AggregateViewsTest.php`.
+- [ ] Tests: with N uncounted rows, the command sets `view_count = N` and marks rows counted; running the command twice in a row leaves `view_count = N` (idempotent).
+- **DoD:** Tests pass.
+
+### Step 6.5 — Admin tests
+- [ ] Create `tests/Feature/AdminAccessTest.php`.
+- [ ] Tests: guests are redirected from `/admin/*`; non-admin authed users get 403; admin can CRUD prompts; admin can create/edit (not delete) tags.
+- **DoD:** Tests pass.
+
+### Step 6.6 — Run the full suite
+- [ ] Run `php artisan test` (or `./vendor/bin/pest`) and confirm green.
+- **DoD:** All tests pass.
+
+### Step 6.7 — Visual QA against `DESIGN-MAP.md`
+- [ ] Walk through each public and admin page in the browser.
+- [ ] Confirm each matches its `design-claude` source per `DESIGN-MAP.md`.
+- [ ] Note any gaps in `DESIGN-MAP.md` (do not invent new components).
+- **DoD:** All pages match the design contract.
+
+### Step 6.8 — Finalize `README.md`
+- [ ] Sections: setup (clone, composer, npm, .env keys), seeding (`migrate:fresh --seed`, admin credentials), cron line, design-folder dependency note, "view counts lag ~5 minutes" note.
+- **DoD:** README is complete.
+
+### Step 6.9 — Acceptance criteria walkthrough
+- [ ] Re-run `php artisan migrate:fresh --seed`.
+- [ ] Click through every route logged-out and as admin.
+- [ ] Run `php artisan prompts:aggregate-views` and confirm counts update.
+- [ ] Tick every box in §8.
+- **DoD:** All §8 acceptance criteria met.
+
+### Phase 6 commit
+- [ ] `git add -A && git commit -m "phase 6: tests, qa, and docs"`
