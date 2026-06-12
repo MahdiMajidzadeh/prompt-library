@@ -42,12 +42,10 @@
         <a class="pl-wordmark" style="font-size: var(--text-base);" href="{{ url('/') }}">
             <span class="pl-wordmark__mark">P</span> Prompt Library
         </a>
-        <nav class="pl-footer__links">
-            <a class="pl-footer__link" href="{{ url('/') }}">Browse</a>
-            <a class="pl-footer__link" href="{{ url('/prompts/latest') }}">Latest</a>
-            <a class="pl-footer__link" href="{{ url('/prompts/most-viewed') }}">Most viewed</a>
-        </nav>
-        <span class="pl-footer__copy">© {{ date('Y') }} Prompt Library</span>
+        <span class="pl-footer__copy">
+            Developed with AI by
+            <a class="pl-footer__link" href="https://mahdi.majidzadeh.ir/" target="_blank" rel="noopener noreferrer">Mahdi Majidzadeh</a>
+        </span>
     </div>
 </footer>
 
