@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Prompts;
 
-use App\Livewire\Concerns\WithInfiniteScroll;
 use App\Models\Prompt;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,23 +11,22 @@ use Livewire\Component;
 #[Title('Most viewed prompts')]
 class MostViewed extends Component
 {
-    use WithInfiniteScroll;
+    /** Hard cap on the page — no infinite scroll, no load-more. */
+    private const CAP = 20;
 
     public function render()
     {
-        $total = Prompt::public()->count();
-
         $prompts = Prompt::public()
             ->with('tags')
             ->orderByDesc('view_count')
             ->orderByDesc('id')
-            ->take($this->perPage)
+            ->take(self::CAP)
             ->get();
 
         return view('livewire.prompts.most-viewed', [
             'prompts' => $prompts,
-            'total' => $total,
-            'hasMore' => $total > $prompts->count(),
+            'total' => $prompts->count(),
+            'hasMore' => false,
         ]);
     }
 }

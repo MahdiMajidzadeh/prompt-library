@@ -18,3 +18,8 @@
 [2026-06-12 16:23:54] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 
 [2026-06-12 16:25:02] local.INFO: prompts:aggregate-views {"prompts_touched":10,"rows_folded":261} 
 [2026-06-12 16:25:19] local.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 
+[2026-06-12 16:34:15] testing.INFO: prompts:aggregate-views {"prompts_touched":2,"rows_folded":10} 
+[2026-06-12 16:34:15] testing.INFO: prompts:aggregate-views {"prompts_touched":1,"rows_folded":5} 
+[2026-06-12 16:34:15] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 
+[2026-06-12 16:34:15] testing.INFO: prompts:aggregate-views {"prompts_touched":1,"rows_folded":6} 
+[2026-06-12 16:34:15] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 

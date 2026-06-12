@@ -32,13 +32,29 @@
             x-data="{
                 copied: false,
                 flash: false,
-                copy() {
+                async copy() {
                     const text = this.$refs.body.textContent;
-                    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
-                    this.copied = true;
-                    this.flash = false; this.$nextTick(() => this.flash = true);
-                    setTimeout(() => this.copied = false, 1800);
-                    setTimeout(() => this.flash = false, 700);
+                    try {
+                        if (navigator.clipboard && window.isSecureContext) {
+                            await navigator.clipboard.writeText(text);
+                        } else {
+                            const ta = document.createElement('textarea');
+                            ta.value = text;
+                            ta.style.position = 'fixed';
+                            ta.style.opacity = '0';
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(ta);
+                        }
+                        this.copied = true;
+                        this.flash = false;
+                        this.$nextTick(() => this.flash = true);
+                        setTimeout(() => this.copied = false, 1800);
+                        setTimeout(() => this.flash = false, 700);
+                    } catch (e) {
+                        console.error('Copy failed', e);
+                    }
                 }
             }"
             :class="{ 'is-flash': flash }"
@@ -48,18 +64,14 @@
                     <span class="prompt-block__dots"><i></i><i></i><i></i></span>
                     prompt
                 </span>
-                <button type="button" class="pl-btn pl-btn--primary copy-cta" :class="{ 'is-copied': copied }" @click="copy">
-                    <template x-if="!copied">
-                        <svg class="pl-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="9" y="9" width="13" height="13" rx="2"/>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                        </svg>
-                    </template>
-                    <template x-if="copied">
-                        <svg class="pl-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M20 6 9 17l-5-5"/>
-                        </svg>
-                    </template>
+                <button type="button" class="pl-btn pl-btn--primary copy-cta" :class="{ 'is-copied': copied }" @click="copy()">
+                    <svg class="pl-btn__icon" x-show="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    <svg class="pl-btn__icon" x-show="copied" x-cloak viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
                     <span x-text="copied ? 'Copied' : 'Copy prompt'">Copy prompt</span>
                 </button>
             </div>

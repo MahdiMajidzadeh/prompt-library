@@ -3,14 +3,7 @@
         <div class="context__main">
             <p class="context__eyebrow">Tag</p>
             <h1 class="context__heading">
-                <span class="context__tagpill">
-                    {{ $tag->name }}
-                    <a class="context__clear" href="{{ url('/prompts/latest') }}" aria-label="Clear tag filter">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-                            <path d="M18 6 6 18M6 6l12 12"/>
-                        </svg>
-                    </a>
-                </span>
+                Prompts tagged <span class="context__q">{{ $tag->name }}</span>
             </h1>
             <p class="context__count">{{ $total }} {{ $total === 1 ? 'prompt' : 'prompts' }}</p>
         </div>
