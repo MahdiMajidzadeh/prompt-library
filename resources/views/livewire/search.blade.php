@@ -12,22 +12,6 @@
             @if (! $isEmptyQuery)
                 <p class="context__count">{{ $total }} {{ $total === 1 ? 'match' : 'matches' }}</p>
             @endif
-            <div style="margin-top: var(--spacing-5); max-width: 520px;">
-                <div class="pl-search">
-                    <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                        <circle cx="11" cy="11" r="7"/>
-                        <path d="m21 21-4.3-4.3"/>
-                    </svg>
-                    <input
-                        type="search"
-                        class="pl-search__input"
-                        placeholder="Search by title or tag…"
-                        aria-label="Search"
-                        wire:model.live.debounce.400ms="q"
-                        autofocus
-                    >
-                </div>
-            </div>
         </div>
     </section>
 
@@ -39,7 +23,7 @@
                     <path d="m21 21-4.3-4.3"/>
                 </svg>
             </div>
-            <h2 class="pl-empty__title">Type to search</h2>
+            <h2 class="pl-empty__title">Use the search bar above</h2>
             <p class="pl-empty__text">Matches prompt titles and tag names. Body text is not searched.</p>
         </div>
     @elseif ($prompts->isEmpty())

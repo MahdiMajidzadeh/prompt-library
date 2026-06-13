@@ -66,7 +66,7 @@ class SearchTest extends TestCase
     {
         Livewire::test(Search::class)
             ->set('q', '')
-            ->assertSee('Type to search');
+            ->assertSee('Use the search bar above');
     }
 
     public function test_no_matches_shows_no_results_state(): void

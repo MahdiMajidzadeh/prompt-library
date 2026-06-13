@@ -24,7 +24,7 @@
                     </svg>
                 </a>
             </div>
-            <div class="grid-3">
+            <div class="grid-2">
                 @foreach ($latest as $prompt)
                     <x-prompt-card :prompt="$prompt" wire:key="latest-{{ $prompt->id }}" />
                 @endforeach
@@ -45,7 +45,7 @@
                     </svg>
                 </a>
             </div>
-            <div class="grid-3">
+            <div class="grid-2">
                 @foreach ($mostViewed as $index => $prompt)
                     <x-prompt-card :prompt="$prompt" :rank="$index + 1" wire:key="popular-{{ $prompt->id }}" />
                 @endforeach

@@ -94,7 +94,7 @@
                     </svg>
                 </a>
             </div>
-            <div class="grid-3">
+            <div class="grid-2">
                 @foreach ($related as $r)
                     <x-prompt-card :prompt="$r" wire:key="related-{{ $r->id }}" />
                 @endforeach
