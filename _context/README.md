@@ -26,7 +26,8 @@ Reference docs for working on this codebase with Claude Code. Each file is a sel
 
 ## Out-of-scope (not in this folder, but useful)
 
-- [`README.md`](../README.md) — user-facing setup & route table.
+- [`README.md`](../README.md) — project introduction (what it is, screenshots, brief quickstart). For full dev workflow see [`10-dev-workflow.md`](./10-dev-workflow.md).
 - [`DESIGN-MAP.md`](../DESIGN-MAP.md) — maps every Blade page back to its `claude-design/*.html` source.
 - [`prompt-library-requirements.md`](../prompt-library-requirements.md) — original product requirements (historical reference).
 - [`claude-design/`](../claude-design/) — original HTML mockups (Home, Prompts, Detail).
+- [`docs/screenshots/`](../docs/screenshots/) — screenshots referenced by the README.

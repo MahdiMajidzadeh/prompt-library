@@ -1,129 +1,99 @@
 # Prompt Library
 
-A curated, public-facing library of reusable prompts with a small admin back office. Laravel 12 + Livewire 3 + Tailwind 4 + MySQL.
+> A small, curated home for reusable prompts — fast to browse, easy to copy, light on its feet.
 
-## Stack
+![Home page](docs/screenshots/home.png)
 
-- **PHP** 8.2+
-- **Laravel** 12.x
-- **Livewire** 3.x
-- **Tailwind** 4 (design tokens + components in `resources/css/app.css`)
-- **MySQL** / MariaDB (configurable; tests use an in-memory SQLite)
+## What it is
 
-## Setup
+Prompt Library is a public-facing catalog of carefully written prompts with a quiet admin back office for the maintainer. It's built to feel like a reading site, not a SaaS dashboard: typography-first, two-column layouts, a soft light/dark palette, and zero noise on the page.
+
+A visitor can land on the home page, scan the latest and most-viewed prompts, jump into a tag, read a detail page, and copy the prompt — all without signing in. Behind the scenes, a single admin manages the catalog: writes prompts, tags them, toggles visibility, and forgets about everything else.
+
+The project doubles as a small showcase of a modern Laravel stack: Livewire 3 for interactivity, Tailwind CSS 4 with `@theme` tokens, a denormalized view-counter folded asynchronously by a scheduled command, and a 30-minute HTTP cache on every public page.
+
+## Highlights
+
+- **Public reading experience, no sign-up.** Anyone can browse, search by title or tag, and copy. There is no public account system by design.
+- **One-admin back office.** A seeded admin manages prompts and tags from a minimal, embedded admin panel that shares the same layout shell as the public site.
+- **Tags, not categories.** Prompts carry zero-to-many tags. Tag pages and tag filters are first-class. Tags are never deleted — they're forever, so URLs stay stable.
+- **Stable short URLs.** Prompt slugs are random 16-character strings, generated once at creation. Editing a title never breaks an existing link.
+- **Deferred view counts.** Visiting a prompt records a deduplicated row; a 5-minute scheduled command folds those rows into a denormalized `view_count`. The "Most viewed" ordering is allowed to lag by a few minutes in exchange for zero write contention on the hot path.
+- **30-minute browser cache** on every public page. Cache-aware out of the box: `Vary: Cookie` so embedded CSRF tokens stay session-scoped.
+- **Single CSS file design system.** All tokens (color, type scale, spacing, motion) and all `pl-*` UI primitives live in one Tailwind 4 file. No `tailwind.config.js`. No bespoke CSS in Blade files.
+- **Theme by attribute, not media query.** `data-theme="light|dark"` flips the entire palette; the user's choice persists in `localStorage`.
+
+## A look around
+
+### The home page
+
+Three sections: the six most-viewed prompts (ranked), the six latest, and a grid of every tag that has at least one public prompt. The header doubles as a search bar.
+
+![Home page](docs/screenshots/home.png)
+
+### A prompt, in full
+
+Reading a prompt is the whole point. The detail page is narrow, typographic, and quiet — the body is rendered in a monospace block so whitespace is preserved exactly. Tags and a small "related" rail sit underneath.
+
+![Prompt detail](docs/screenshots/prompt-detail.png)
+
+### Browse
+
+The listing page uses infinite scroll with an `IntersectionObserver` sentinel. Twelve cards per page, lazy-loaded as you go. The same card primitive (`<x-prompt-card />`) is reused across home, latest, most-viewed, tag pages, and search.
+
+![Listing page](docs/screenshots/listing.png)
+
+### Search
+
+Search matches on **title** and **tag name** — never on body. The `?q=` parameter round-trips, so a search URL is shareable. Empty query returns no results (rather than the full catalog).
+
+![Search](docs/screenshots/search.png)
+
+## Under the hood
+
+| Layer | Choice | Why |
+| ----- | ------ | --- |
+| Language | PHP 8.2+ | Modern syntax, native enums, readonly props. |
+| Framework | Laravel 12 | Pragmatic batteries-included server framework. |
+| Interactivity | Livewire 3 | Stateful server components — no separate API, no SPA build. |
+| Styling | Tailwind CSS 4 | `@theme` tokens, `@layer components`, no JS config file. |
+| Database | MySQL / MariaDB (SQLite for tests) | Standard relational store; tests run on in-memory SQLite for speed. |
+| Asset build | Vite 7 | Fast dev HMR, hashed prod bundles. |
+| Tests | PHPUnit 11 + Livewire test helpers | All feature tests; in-memory DB; `RefreshDatabase` per test. |
+
+The whole app is around **1,300 lines of PHP** across models, Livewire components, one middleware, and one scheduled command. No controllers, no FormRequests, no service layer, no API — Livewire components own each page's logic; Eloquent owns the data layer.
+
+## Notable engineering bits
+
+- **`prompts:aggregate-views`** — an idempotent, incremental fold that snapshots the max id of uncounted view rows, groups by prompt, and bumps `prompts.view_count` per group inside a transaction. Survives concurrent inserts mid-run. See `app/Console/Commands/AggregatePromptViews.php`.
+- **`CachePublicPage` middleware** — stamps `Cache-Control` and `Vary` on 200 GET/HEAD responses only; leaves errors, redirects, and POSTs untouched. See `app/Http/Middleware/CachePublicPage.php`.
+- **`Prompt::scopePublic()`** — a single source of truth for the public/private boundary. Every public-facing query goes through it, and a dedicated test file (`tests/Feature/PublicScopeTest.php`) keeps that invariant honest.
+- **Auto-slugged tags, random-slug prompts** — different strategies on purpose: tag slugs are SEO-friendly and derived from the name; prompt slugs are short stable random strings that survive renames.
+
+## Getting started
+
+The four-step version is below. For the full developer workflow — env vars, scheduler, dev commands, troubleshooting — see [`_context/10-dev-workflow.md`](./_context/10-dev-workflow.md).
 
 ```bash
-composer install
-npm install
-cp .env.example .env
-php artisan key:generate
-```
-
-Then edit `.env` and set:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=prompt-library
-DB_USERNAME=root
-DB_PASSWORD=
-
-# Seeded admin account (read by AdminUserSeeder — required, no defaults)
-ADMIN_EMAIL=admin@example.test
-ADMIN_PASSWORD=password
-```
-
-Create the database (MySQL accepts a hyphenated name when backtick-quoted):
-
-```bash
-mysql -uroot -e "CREATE DATABASE \`prompt-library\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-```
-
-Then run the migrations, seed, and serve:
-
-```bash
-php artisan migrate:fresh --seed
-npm run build
+composer install && npm install
+cp .env.example .env && php artisan key:generate
+# Set ADMIN_EMAIL and ADMIN_PASSWORD in .env, configure your DB
+php artisan migrate:fresh --seed && npm run build
 php artisan serve
 ```
 
-Sign in as the seeded admin at <http://127.0.0.1:8000/login>.
+Sign in as the seeded admin at `/login`.
 
-## Tests
+## Project docs
 
-```bash
-php artisan test
-```
+The [`_context/`](./_context/) folder is an onboarding pack — short topical docs that map every part of the codebase, cross-link source files by `path:line`, and call out conventions and intentional absences. Start at [`_context/README.md`](./_context/README.md).
 
-The suite uses an in-memory SQLite database (configured in `phpunit.xml`) and the `RefreshDatabase` trait — no MySQL contact, no shared state between tests. Categories:
+Adjacent references:
 
-| File                                         | Covers                                                                  |
-| -------------------------------------------- | ----------------------------------------------------------------------- |
-| `tests/Feature/PublicScopeTest.php`          | Private prompts hidden on every public page; private detail URL 404s   |
-| `tests/Feature/SearchTest.php`               | Search matches title and tag, never body; `?q=` round-trips             |
-| `tests/Feature/ViewTrackingTest.php`         | One row per qualifying visit; 30-second `visitor_hash` dedupe; private 404 doesn't record |
-| `tests/Feature/AggregateViewsTest.php`       | `prompts:aggregate-views` correctness + idempotency                     |
-| `tests/Feature/AdminAccessTest.php`          | Guest redirect, non-admin 403, admin CRUD; tag delete route absent      |
+- [`DESIGN-MAP.md`](./DESIGN-MAP.md) — maps each Blade page back to its `claude-design/*.html` source.
+- [`prompt-library-requirements.md`](./prompt-library-requirements.md) — original product requirements (historical).
+- [`claude-design/`](./claude-design/) — original HTML mockups (Home, Prompts, Detail).
 
-## View tracking & aggregation
+## Credits
 
-Visiting a public prompt detail page inserts one row into `prompt_views` (deduped per `(prompt_id, visitor_hash)` within a 30-second window). A scheduled command folds new rows into the cached `prompts.view_count`:
-
-```bash
-php artisan prompts:aggregate-views
-```
-
-The command is **idempotent** — already-counted rows are skipped on subsequent runs.
-
-### Scheduling
-
-The command is registered in `routes/console.php` to run every five minutes:
-
-```php
-Schedule::command('prompts:aggregate-views')
-    ->everyFiveMinutes()
-    ->withoutOverlapping();
-```
-
-**Production:** add this to the server crontab so the Laravel scheduler ticks every minute:
-
-```cron
-* * * * * cd /path/to/prompt-library && php artisan schedule:run >> /dev/null 2>&1
-```
-
-**Local development:** instead of a crontab, run
-
-```bash
-php artisan schedule:work
-```
-
-in a side terminal — it polls and dispatches scheduled commands on the same five-minute cadence.
-
-> **Staleness note:** because aggregation runs every five minutes, "most viewed" ordering can lag up to ~5 minutes behind raw views. This is intentional — it avoids row contention on every page hit.
-
-## Design
-
-The visual design originates from `claude-design/` (3 HTML files: Home, Prompts, Detail). Tokens and `pl-*` component classes have been rewritten as Tailwind 4 in `resources/css/app.css` — this is the single source of truth for colors, fonts, spacing, type scale, radii, and motion. The original `claude-design/styles/*.css` files were removed once their content was ported.
-
-`DESIGN-MAP.md` maps every Blade page and component back to its source.
-
-## Routes
-
-| Method | Path                              | Component                       | Notes                                        |
-| ------ | --------------------------------- | ------------------------------- | -------------------------------------------- |
-| GET    | `/`                               | `App\Livewire\Home`             | Public — 6 latest, 6 most viewed, used tags  |
-| GET    | `/prompts/latest`                 | `Prompts\Latest`                | Public — infinite scroll                     |
-| GET    | `/prompts/most-viewed`            | `Prompts\MostViewed`            | Public — infinite scroll, ranked             |
-| GET    | `/prompts/{prompt:slug}`          | `Prompts\Show`                  | Public — 404 if private; records a view      |
-| GET    | `/tags/{tag:slug}`                | `Tags\Show`                     | Public — 404 if unknown                      |
-| GET    | `/search`                         | `Search`                        | Public — `?q=` debounced, title+tag only     |
-| GET    | `/login`                          | `Auth\Login`                    | Guest only; throttled 5/min                  |
-| POST   | `/logout`                         | (closure)                       | CSRF-protected                               |
-| GET    | `/admin`                          | `Admin\Dashboard`               | `auth + admin`                               |
-| GET    | `/admin/prompts`                  | `Admin\Prompts\Index`           | Search, filter, toggle, delete               |
-| GET    | `/admin/prompts/create`           | `Admin\Prompts\Form`            | Sets `user_id = auth()->id()` on save        |
-| GET    | `/admin/prompts/{prompt}/edit`    | `Admin\Prompts\Form`            |                                              |
-| GET    | `/admin/tags`                     | `Admin\Tags\Index`              | No delete (tags are never deleted)           |
-| GET    | `/admin/tags/create`              | `Admin\Tags\Form`               |                                              |
-| GET    | `/admin/tags/{tag}/edit`          | `Admin\Tags\Form`               |                                              |
+Built by [Mahdi Majidzadeh](https://mahdi.majidzadeh.ir/) with the help of Claude.
