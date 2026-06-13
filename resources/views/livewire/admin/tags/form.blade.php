@@ -15,7 +15,7 @@
                 @enderror
             </div>
 
-            <div style="display: flex; gap: var(--spacing-3); align-items: center; padding-top: var(--spacing-4); border-top: 1px solid var(--color-border);">
+            <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-3); align-items: center; padding-top: var(--spacing-4); border-top: 1px solid var(--color-border);">
                 <button type="submit" class="pl-btn pl-btn--primary" wire:loading.attr="disabled">
                     <span wire:loading.remove wire:target="save">{{ $isEdit ? 'Save changes' : 'Create tag' }}</span>
                     <span wire:loading wire:target="save">Saving…</span>

@@ -56,7 +56,7 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: var(--spacing-2); flex-shrink: 0;">
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-2); flex-shrink: 0;">
                             <button
                                 type="button"
                                 class="pl-btn pl-btn--secondary"

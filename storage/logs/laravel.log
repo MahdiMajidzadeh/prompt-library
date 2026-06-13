@@ -23,3 +23,13 @@
 [2026-06-12 16:34:15] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 
 [2026-06-12 16:34:15] testing.INFO: prompts:aggregate-views {"prompts_touched":1,"rows_folded":6} 
 [2026-06-12 16:34:15] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 
+[2026-06-13 06:46:22] testing.INFO: prompts:aggregate-views {"prompts_touched":2,"rows_folded":10} 
+[2026-06-13 06:46:22] testing.INFO: prompts:aggregate-views {"prompts_touched":1,"rows_folded":5} 
+[2026-06-13 06:46:22] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 
+[2026-06-13 06:46:22] testing.INFO: prompts:aggregate-views {"prompts_touched":1,"rows_folded":6} 
+[2026-06-13 06:46:22] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 
+[2026-06-13 06:58:26] testing.INFO: prompts:aggregate-views {"prompts_touched":2,"rows_folded":10} 
+[2026-06-13 06:58:26] testing.INFO: prompts:aggregate-views {"prompts_touched":1,"rows_folded":5} 
+[2026-06-13 06:58:26] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 
+[2026-06-13 06:58:26] testing.INFO: prompts:aggregate-views {"prompts_touched":1,"rows_folded":6} 
+[2026-06-13 06:58:26] testing.INFO: prompts:aggregate-views {"prompts_touched":0,"rows_folded":0} 

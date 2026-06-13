@@ -8,16 +8,9 @@
     $hiddenTagCount = max($prompt->tags->count() - 2, 0);
 @endphp
 
-<article
+<a href="{{ $detailUrl }}"
     {{ $attributes->class(['pl-card', 'pl-card--ranked' => $rank !== null]) }}
-    tabindex="0"
-    role="link"
     aria-label="{{ $prompt->title }}"
-    x-data
-    @click="if (!$event.target.closest('.pl-tag')) window.location='{{ $detailUrl }}'"
-    @keydown.enter.prevent="window.location='{{ $detailUrl }}'"
-    @keydown.space.prevent="window.location='{{ $detailUrl }}'"
-    style="cursor: pointer;"
 >
     <div class="pl-card__head">
         <h3 class="pl-card__title">
@@ -31,7 +24,7 @@
     <div class="pl-card__foot">
         <div class="pl-card__tags">
             @foreach ($visibleTags as $tag)
-                <a class="pl-tag pl-tag--sm" href="{{ route('tags.show', $tag) }}" @click.stop>{{ $tag->name }}</a>
+                <span class="pl-tag pl-tag--sm pl-tag--static">{{ $tag->name }}</span>
             @endforeach
             @if ($hiddenTagCount > 0)
                 <span class="pl-tag pl-tag--sm pl-tag--static">+{{ $hiddenTagCount }}</span>
@@ -45,4 +38,4 @@
             {{ \Illuminate\Support\Number::abbreviate($prompt->view_count) }}
         </span>
     </div>
-</article>
+</a>

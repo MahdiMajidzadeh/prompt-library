@@ -1061,4 +1061,161 @@
         gap: var(--spacing-2);
         margin-top: var(--spacing-1);
     }
+
+    /* ---------- Admin dashboard stat grid (responsive 4-up) ---------- */
+    .grid-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-4);
+    }
+    @media (max-width: 1000px) {
+        .grid-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 520px) {
+        .grid-stats { grid-template-columns: 1fr; }
+    }
+
+    /* =================================================================
+       Responsive overrides (mobile + tablet)
+       Larger viewports use the desktop styles above.
+       ================================================================= */
+
+    /* ---------- Header: keep search visible at every size ---------- */
+    @media (max-width: 720px) {
+        .pl-header__inner {
+            gap: var(--spacing-3);
+            padding: var(--spacing-3) var(--spacing-4);
+        }
+        .pl-header__search {
+            max-width: none;
+        }
+        /* Hide text nav links on mobile — keep only the theme toggle. */
+        .pl-header__nav .pl-navlink {
+            display: none;
+        }
+        .pl-header__nav {
+            gap: var(--spacing-2);
+        }
+    }
+    @media (max-width: 420px) {
+        /* Drop the wordmark text below very narrow widths — keep only the mark. */
+        .pl-wordmark > :not(.pl-wordmark__mark) {
+            display: none;
+        }
+        .pl-header__inner {
+            gap: var(--spacing-2);
+            padding: var(--spacing-3);
+        }
+        .pl-search__input {
+            font-size: var(--text-xs);
+        }
+        .pl-search__kbd {
+            display: none;
+        }
+    }
+
+    /* ---------- Page padding tightens on mobile ---------- */
+    @media (max-width: 600px) {
+        .page,
+        .wrap {
+            padding: 0 var(--spacing-4);
+        }
+    }
+
+    /* ---------- Context bar wrap behaviour ---------- */
+    @media (max-width: 600px) {
+        .context {
+            padding-top: var(--spacing-6);
+            padding-bottom: var(--spacing-4);
+            margin-bottom: var(--spacing-4);
+            gap: var(--spacing-3);
+        }
+        .context__heading {
+            font-size: var(--text-xl);
+        }
+    }
+
+    /* ---------- Empty state slimmer on mobile ---------- */
+    @media (max-width: 600px) {
+        .pl-empty {
+            padding: var(--spacing-7) var(--spacing-4);
+        }
+    }
+
+    /* ---------- Card row → stack on mobile ---------- */
+    @media (max-width: 720px) {
+        .pl-card--row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: var(--spacing-3);
+            padding: var(--spacing-4);
+        }
+        .pl-card--row .pl-card__main {
+            width: 100%;
+        }
+    }
+
+    /* ---------- Section header on mobile ---------- */
+    @media (max-width: 600px) {
+        .pl-section-head {
+            flex-wrap: wrap;
+            gap: var(--spacing-2);
+            margin-bottom: var(--spacing-4);
+        }
+        .pl-section-head__title {
+            font-size: var(--text-lg);
+        }
+    }
+
+    /* ---------- Detail page tweaks already exist at 720px; tighten further ---------- */
+    @media (max-width: 600px) {
+        .detail-meta {
+            flex-wrap: wrap;
+            gap: var(--spacing-2);
+        }
+        .detail-meta .detail-dot {
+            display: none;
+        }
+        .prompt-block__body {
+            padding: var(--spacing-4);
+            font-size: var(--text-base);
+        }
+        .crumb {
+            padding-top: var(--spacing-5);
+            padding-bottom: var(--spacing-4);
+        }
+    }
+
+    /* ---------- Footer wraps and centres on mobile ---------- */
+    @media (max-width: 600px) {
+        .pl-footer__inner {
+            justify-content: center;
+            text-align: center;
+            gap: var(--spacing-3);
+            padding: var(--spacing-5) var(--spacing-4);
+        }
+    }
+
+    /* ---------- Admin seg sub-nav wraps; allow stacking on very narrow ---------- */
+    .seg {
+        flex-wrap: wrap;
+    }
+    @media (max-width: 520px) {
+        .seg__btn {
+            padding: 0 var(--spacing-2);
+            font-size: var(--text-xs);
+        }
+    }
+
+    /* ---------- Intro hero ---------- */
+    @media (max-width: 600px) {
+        .intro {
+            padding-top: var(--spacing-7);
+            padding-bottom: var(--spacing-6);
+        }
+        .intro__meta {
+            flex-wrap: wrap;
+            gap: var(--spacing-2);
+        }
+    }
 }

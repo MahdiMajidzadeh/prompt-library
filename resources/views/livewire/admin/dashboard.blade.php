@@ -3,7 +3,7 @@
         <x-slot:heading>Dashboard</x-slot:heading>
         <x-slot:subheading>{{ now()->format('l, F j, Y') }}</x-slot:subheading>
 
-        <div class="grid-3" style="--cols: 4;">
+        <div class="grid-stats">
             <div class="pl-card" style="cursor: default;">
                 <div class="pl-card__head">
                     <h3 class="pl-card__title">Public prompts</h3>
