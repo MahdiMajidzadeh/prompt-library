@@ -13,9 +13,9 @@
             <a class="seg__btn" aria-pressed="{{ $active === 'dashboard' ? 'true' : 'false' }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
             <a class="seg__btn" aria-pressed="{{ $active === 'prompts' ? 'true' : 'false' }}" href="{{ route('admin.prompts.index') }}">Prompts</a>
             <a class="seg__btn" aria-pressed="{{ $active === 'tags' ? 'true' : 'false' }}" href="{{ route('admin.tags.index') }}">Tags</a>
-            <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+            <form method="POST" action="{{ route('logout') }}" style="display: contents;">
                 @csrf
-                <button type="submit" class="seg__btn" style="background: transparent;">Sign out</button>
+                <button type="submit" class="seg__btn">Sign out</button>
             </form>
         </nav>
     </section>
