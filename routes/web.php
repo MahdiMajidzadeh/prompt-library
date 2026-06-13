@@ -15,16 +15,18 @@ use App\Livewire\Tags\Show as TagShow;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Public read-side
-Route::get('/', Home::class)->name('home');
+// Public read-side — every page browser-cached for 30 minutes.
+Route::middleware('cache.public')->group(function () {
+    Route::get('/', Home::class)->name('home');
 
-Route::get('/prompts/latest', Latest::class)->name('prompts.latest');
-Route::get('/prompts/most-viewed', MostViewed::class)->name('prompts.most-viewed');
-Route::get('/prompts/{prompt:slug}', PromptShow::class)->name('prompts.show');
+    Route::get('/prompts/latest', Latest::class)->name('prompts.latest');
+    Route::get('/prompts/most-viewed', MostViewed::class)->name('prompts.most-viewed');
+    Route::get('/prompts/{prompt:slug}', PromptShow::class)->name('prompts.show');
 
-Route::get('/tags/{tag:slug}', TagShow::class)->name('tags.show');
+    Route::get('/tags/{tag:slug}', TagShow::class)->name('tags.show');
 
-Route::get('/search', Search::class)->name('search');
+    Route::get('/search', Search::class)->name('search');
+});
 
 // Auth
 Route::middleware('guest')->group(function () {

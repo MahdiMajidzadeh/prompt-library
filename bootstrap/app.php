@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CachePublicPage;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'cache.public' => CachePublicPage::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
