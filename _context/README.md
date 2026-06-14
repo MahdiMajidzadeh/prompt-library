@@ -17,6 +17,7 @@ Reference docs for working on this codebase with Claude Code. Each file is a sel
 | [09-testing.md](./09-testing.md) | phpunit config, in-memory SQLite, test list, factory helpers. |
 | [10-dev-workflow.md](./10-dev-workflow.md) | Setup, dev/build commands, env vars, scheduler. |
 | [11-conventions.md](./11-conventions.md) | Coding style, what to do, what to avoid. |
+| [12-deployment.md](./12-deployment.md) | Deploy to a Linux VPS — nginx, PHP-FPM, MySQL, cron, SSL. |
 
 ## How this folder is meant to be used
 
