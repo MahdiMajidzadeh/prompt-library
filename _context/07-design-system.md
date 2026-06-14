@@ -58,7 +58,11 @@ Defined in `@layer components` inside `resources/css/app.css`. Map of what exist
 | `pl-meta` | Inline icon-text (e.g. view counter on cards). |
 | `seg`, `seg__btn` | Segmented controls (sort tabs, admin sub-nav). |
 | `loadmore`, `loadmore__hint`, `loadmore__sentinel` | Infinite-scroll trigger styling. |
-| `m-tabbar`, `m-tab`, `m-tab--active` | Fixed bottom tab bar (Home / Search / Tags) — rendered in `layouts/app.blade.php`, hidden ≥721px. |
+| `m-tabbar`, `m-tab`, `m-tab--active` | Fixed bottom tab bar (Home / Search / Tags). Rendered in both `layouts/app.blade.php` (hidden ≥721px) and `layouts/mobile.blade.php` (always visible). |
+| `m-body`, `m-header`, `m-header__bar`, `m-header__wordmark`, `m-iconbtn`, `m-main`, `m-page` | Mobile-only layout chrome used by `layouts/mobile.blade.php` (the `/m/*` routes). |
+| `m-intro`, `m-intro__title`, `m-intro__desc`, `m-intro__meta` | Mobile page hero block. |
+| `m-search`, `m-stack`, `m-results__meta` | Mobile search input row, vertical results stack, and results count meta. |
+| `m-taggrid`, `m-tagtile`, `m-tagtile__name`, `m-tagtile__count` | Mobile 2-column tag tile grid. |
 
 ## Responsive / mobile
 

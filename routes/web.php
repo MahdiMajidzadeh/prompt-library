@@ -7,10 +7,13 @@ use App\Livewire\Admin\Tags\Form as AdminTagForm;
 use App\Livewire\Admin\Tags\Index as AdminTagIndex;
 use App\Livewire\Auth\Login;
 use App\Livewire\Home;
+use App\Livewire\Mobile\Search as MobileSearch;
+use App\Livewire\Mobile\Tags as MobileTags;
 use App\Livewire\Prompts\Latest;
 use App\Livewire\Prompts\MostViewed;
 use App\Livewire\Prompts\Show as PromptShow;
 use App\Livewire\Search;
+use App\Livewire\Tags\Index as TagIndex;
 use App\Livewire\Tags\Show as TagShow;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -23,9 +26,14 @@ Route::middleware('cache.public')->group(function () {
     Route::get('/prompts/most-viewed', MostViewed::class)->name('prompts.most-viewed');
     Route::get('/prompts/{prompt:slug}', PromptShow::class)->name('prompts.show');
 
+    Route::get('/tags', TagIndex::class)->name('tags.index');
     Route::get('/tags/{tag:slug}', TagShow::class)->name('tags.show');
 
     Route::get('/search', Search::class)->name('search');
+
+    // Dedicated mobile pages (linked from the bottom tab bar on small screens).
+    Route::get('/m/search', MobileSearch::class)->name('mobile.search');
+    Route::get('/m/tags', MobileTags::class)->name('mobile.tags');
 });
 
 // Auth

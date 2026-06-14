@@ -8,47 +8,22 @@
     <title>{{ $title }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
+<body class="m-body">
 
-<header class="pl-header">
-    <div class="pl-header__inner">
-        <a class="pl-wordmark" href="{{ url('/') }}">
-            <span class="pl-wordmark__mark pl-wordmark__mark--accent">P</span> Prompt Library
+<header class="m-header">
+    <div class="m-header__bar">
+        <a class="m-header__wordmark" href="{{ route('home') }}">
+            <span class="pl-wordmark__mark pl-wordmark__mark--accent">P</span>
+            <span>Prompt Library</span>
         </a>
-        <div class="pl-header__search">
-            <form class="pl-search" action="{{ url('/search') }}" method="GET" role="search">
-                <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                    <circle cx="11" cy="11" r="7"/>
-                    <path d="m21 21-4.3-4.3"/>
-                </svg>
-                <input class="pl-search__input" type="search" name="q" value="{{ request('q') }}" placeholder="Search prompts…" aria-label="Search prompts">
-            </form>
-        </div>
-        <nav class="pl-header__nav">
-            <a class="pl-navlink {{ request()->is('/') ? 'pl-navlink--active' : '' }}" href="{{ url('/') }}">Browse</a>
-            <a class="pl-navlink {{ request()->is('prompts/latest') ? 'pl-navlink--active' : '' }}" href="{{ url('/prompts/latest') }}">Latest</a>
-            <a class="pl-navlink {{ request()->is('prompts/most-viewed') ? 'pl-navlink--active' : '' }}" href="{{ url('/prompts/most-viewed') }}">Most viewed</a>
-            <a class="pl-navlink {{ request()->routeIs('tags.index') ? 'pl-navlink--active' : '' }}" href="{{ route('tags.index') }}">Tags</a>
-            <button type="button" class="pl-iconbtn" id="themeToggle" aria-label="Toggle dark mode"></button>
-        </nav>
+        <span class="m-header__spacer"></span>
+        <button type="button" class="m-iconbtn" id="themeToggle" aria-label="Toggle dark mode"></button>
     </div>
 </header>
 
-<main class="mx-auto" style="max-width: var(--container-content); padding: 0 var(--spacing-5);">
+<main class="m-main">
     {{ $slot }}
 </main>
-
-<footer class="pl-footer">
-    <div class="pl-footer__inner">
-        <a class="pl-wordmark" style="font-size: var(--text-base);" href="{{ url('/') }}">
-            <span class="pl-wordmark__mark">P</span> Prompt Library
-        </a>
-        <span class="pl-footer__copy">
-            Developed with AI by
-            <a class="pl-footer__link" href="https://mahdi.majidzadeh.ir/" target="_blank" rel="noopener noreferrer">Mahdi Majidzadeh</a>
-        </span>
-    </div>
-</footer>
 
 <nav class="m-tabbar" aria-label="Primary">
     <a class="m-tab {{ request()->routeIs('home') ? 'm-tab--active' : '' }}" href="{{ route('home') }}" aria-label="Home">
