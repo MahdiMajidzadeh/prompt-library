@@ -31,3 +31,6 @@ auth.json
 /storage/framework
 /storage/logs
 .DS_Store
+
+# deploy.sh credentials — never commit
+.deploy.env

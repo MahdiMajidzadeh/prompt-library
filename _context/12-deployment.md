@@ -240,7 +240,7 @@ php artisan db:seed --class=TagSeeder --force
 
 ## Subsequent deploys
 
-The minimal recipe — run on every code change:
+### Option A — git-based (requires SSH on the server)
 
 ```bash
 cd /var/www/prompt-library
@@ -253,7 +253,42 @@ php artisan optimize
 php artisan up
 ```
 
-For zero-downtime, use [Envoyer](https://envoyer.io) or [Deployer](https://deployer.org) — the recipe is the same, but they atomically switch a symlink between release directories so requests in flight aren't interrupted.
+### Option B — FTP upload from your laptop ([`deploy.sh`](../deploy.sh))
+
+For when the server has FTP + SSH but you want to push from local without committing/pulling:
+
+```bash
+# one-time setup
+cp .deploy.env.example .deploy.env   # then edit credentials
+brew install lftp                    # macOS (or apt install lftp)
+
+# every deploy
+npm run build                        # rebuild hashed assets
+./deploy.sh --dry-run                # preview the diff
+./deploy.sh                          # upload (prompts to confirm)
+
+# then SSH to the server and finish:
+ssh deploy@your.domain '
+  cd /var/www/prompt-library \
+  && composer install --no-dev --optimize-autoloader \
+  && php artisan migrate --force \
+  && php artisan optimize
+'
+```
+
+What [`deploy.sh`](../deploy.sh) does:
+
+- Mirrors the working tree to the FTP root via `lftp mirror --reverse --delete --parallel=4`.
+- Excludes `vendor/`, `node_modules/`, `storage/`, `.env`, `_context/`, `docs/`, `tests/`, `*.md`, and other dev/local-only files. The full exclude list is in the script.
+- Pre-flight: aborts if `public/build/manifest.json` is missing (assets weren't built).
+- Confirms before transferring; supports `--dry-run` and `--no-delete`.
+- Credentials live in `.deploy.env` (gitignored) — see `.deploy.env.example` for the schema.
+
+The `--delete` flag prunes remote files that no longer exist locally, **but excluded paths are never touched** — so `storage/`, `vendor/`, and `.env` on the server are safe.
+
+### Option C — zero-downtime
+
+Use [Envoyer](https://envoyer.io) or [Deployer](https://deployer.org). Same recipe, but they atomically switch a symlink between release directories so requests in flight aren't interrupted.
 
 ### What the 30-min HTTP cache means for deploys
 
