@@ -58,6 +58,19 @@ Defined in `@layer components` inside `resources/css/app.css`. Map of what exist
 | `pl-meta` | Inline icon-text (e.g. view counter on cards). |
 | `seg`, `seg__btn` | Segmented controls (sort tabs, admin sub-nav). |
 | `loadmore`, `loadmore__hint`, `loadmore__sentinel` | Infinite-scroll trigger styling. |
+| `m-tabbar`, `m-tab`, `m-tab--active` | Fixed bottom tab bar (Home / Search / Tags) — rendered in `layouts/app.blade.php`, hidden ≥721px. |
+
+## Responsive / mobile
+
+Breakpoints used in `resources/css/app.css`:
+
+| Width | What changes |
+| ----- | ------------ |
+| ≤720px | Header search hides (search moves to the bottom tab bar). Nav links hide. Card `.pl-card__copy` is always visible (no hover to reveal it on touch). The `.m-tabbar` becomes visible and `body` gets `padding-bottom` to clear it. |
+| ≤600px | `.page` / `.wrap` tighten side padding. `.grid-2--rail` (opt-in on Home sections) becomes a horizontal `scroll-snap` rail instead of stacking 1-col. `.tag-grid` locks to 2 columns. Intro hero and section head shrink. |
+| ≤420px | Wordmark text drops, leaving only the `P` mark. |
+
+The layout's viewport meta uses `viewport-fit=cover` and the tab bar uses `env(safe-area-inset-bottom)` so it clears the iPhone home indicator. To opt a card grid into the mobile-rail behavior, add the `grid-2--rail` modifier — listing pages keep the default 1-col stack, only Home's `Recently added` / `Most viewed` sections use the rail.
 
 ## Layout containers
 

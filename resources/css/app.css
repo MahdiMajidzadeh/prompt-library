@@ -1222,4 +1222,93 @@
             gap: var(--spacing-2);
         }
     }
+
+    /* ---------- Mobile: hide header search (lives in bottom tab bar) ---------- */
+    @media (max-width: 720px) {
+        .pl-header__search {
+            display: none;
+        }
+        /* Copy icon always visible on touch — no hover to reveal it. */
+        .pl-card__copy {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /* ---------- Mobile: Home card sections become swipeable rails ---------- */
+    @media (max-width: 600px) {
+        .grid-2--rail {
+            display: flex;
+            gap: var(--spacing-3);
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: var(--spacing-1) var(--spacing-4) var(--spacing-3);
+            margin: 0 calc(-1 * var(--spacing-4));
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .grid-2--rail::-webkit-scrollbar {
+            display: none;
+        }
+        .grid-2--rail > * {
+            flex: 0 0 84%;
+            max-width: 320px;
+            scroll-snap-align: start;
+        }
+        /* Tag grid: exactly two columns on mobile, regardless of tile min width. */
+        .tag-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    /* ---------- Bottom tab bar (mobile only) ---------- */
+    .m-tabbar {
+        display: none;
+    }
+    @media (max-width: 720px) {
+        body {
+            padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+        }
+        .m-tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            display: flex;
+            align-items: stretch;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            border-top: 1px solid var(--color-border);
+        }
+        .m-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 64px;
+            min-width: 44px;
+            color: var(--color-text-tertiary);
+            font-family: var(--font-sans);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: var(--tracking-snug);
+            text-decoration: none;
+            transition: color var(--default-transition-duration) var(--default-transition-timing-function);
+        }
+        .m-tab svg {
+            width: 23px;
+            height: 23px;
+        }
+        .m-tab--active {
+            color: var(--color-accent);
+        }
+        .m-tab:active {
+            background: var(--color-surface-soft);
+        }
+    }
 }
