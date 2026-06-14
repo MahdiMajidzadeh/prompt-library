@@ -30,3 +30,4 @@ Homestead.json
 auth.json
 /storage/framework
 /storage/logs
+.DS_Store
