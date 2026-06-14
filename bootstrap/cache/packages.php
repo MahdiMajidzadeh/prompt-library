@@ -52,4 +52,11 @@
       0 => 'Termwind\\Laravel\\TermwindServiceProvider',
     ),
   ),
+  'nutgram/laravel' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Nutgram\\Laravel\\NutgramServiceProvider',
+    ),
+  ),
 );
