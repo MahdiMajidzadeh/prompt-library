@@ -4,6 +4,13 @@ return [
     // The Telegram BOT api token
     'token' => env('TELEGRAM_TOKEN'),
 
+    // Comma-separated Telegram user IDs allowed to use the admin bot.
+    // The admin middleware blocks all other senders with a polite message.
+    'admin_ids' => array_values(array_filter(array_map(
+        'intval',
+        explode(',', (string) env('TELEGRAM_ADMIN_IDS', ''))
+    ))),
+
     // if the webhook mode must validate the incoming IP range is from a telegram server
     'safe_mode' => env('APP_ENV', 'local') === 'production',
 

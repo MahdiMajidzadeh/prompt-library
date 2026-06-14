@@ -17,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
             'cache.public' => CachePublicPage::class,
         ]);
+
+        // Telegram posts updates without a CSRF token; the secret-token header
+        // verified by Nutgram's safe_mode replaces CSRF for this endpoint.
+        $middleware->validateCsrfTokens(except: [
+            'telegram/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

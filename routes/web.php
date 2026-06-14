@@ -17,6 +17,7 @@ use App\Livewire\Tags\Index as TagIndex;
 use App\Livewire\Tags\Show as TagShow;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use SergiX44\Nutgram\Nutgram;
 
 // Public read-side — every page browser-cached for 30 minutes.
 Route::middleware('cache.public')->group(function () {
@@ -48,6 +49,15 @@ Route::post('/logout', function () {
 
     return redirect('/login');
 })->name('logout');
+
+// Telegram bot webhook. Nutgram's safe_mode (enabled in production) verifies
+// the X-Telegram-Bot-Api-Secret-Token header automatically. Excluded from
+// CSRF by extending bootstrap/app.php's withMiddleware() except() list.
+Route::post('/telegram/webhook', function (Nutgram $bot) {
+    $bot->run();
+
+    return response('OK');
+})->name('telegram.webhook');
 
 // Admin
 Route::middleware(['auth', 'admin'])

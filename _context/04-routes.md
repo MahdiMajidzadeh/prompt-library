@@ -19,6 +19,7 @@ All HTTP routes live in [`routes/web.php`](../routes/web.php). Three middleware 
 | GET | `/search` | `Search` | `cache.public` | `?q=` debounced; matches `title` OR tag `name` (never body). `routes/web.php:30` |
 | GET | `/m/search` | `Mobile\Search` | `cache.public` | Mobile-only Search page — uses `layouts/mobile.blade.php`. Same query logic as `/search` but with the compact mobile chrome (sticky m-header + bottom tab bar). `routes/web.php:33` |
 | GET | `/m/tags` | `Mobile\Tags` | `cache.public` | Mobile-only Tags index. Same data as `/tags` rendered with `.m-taggrid` 2-col mobile tiles. `routes/web.php:34` |
+| POST | `/telegram/webhook` | inline closure → `Nutgram::run()` | none (CSRF-exempt) | Telegram bot webhook. Admin-only via [`RequireAdmin`](../app/Telegram/Middleware/RequireAdmin.php) middleware on the Nutgram bot. Safe mode in production verifies the secret-token header. See [13-telegram-bot.md](./13-telegram-bot.md). |
 | GET | `/login` | `Auth\Login` | `guest` | Throttled 5 attempts/min per `(email, ip)`. `routes/web.php:33` |
 | POST | `/logout` | inline closure | (default web) | Logs out, invalidates session, regenerates CSRF, redirects to `/login`. `routes/web.php:36` |
 | GET | `/admin` | `Admin\Dashboard` | `auth + admin` | Counts: public/private prompts, tags, view rows, summed `view_count`. `routes/web.php:49` |
