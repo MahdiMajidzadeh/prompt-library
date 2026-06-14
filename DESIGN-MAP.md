@@ -1,6 +1,6 @@
 # DESIGN-MAP
 
-The visual design originates from the three HTML files in `claude-design/` (`Home.html`, `Prompts.html`, `Detail.html`). The original `claude-design/styles/tokens.css` and `claude-design/styles/components.css` files have been **rewritten as Tailwind 4** in `resources/css/app.css`, which is the single source of truth for tokens (colors, fonts, spacing, type scale, radii, motion) and the `pl-*` component classes. Per-page styles that live as `<style>` blocks inside each HTML file are ported into the corresponding Blade view as they are built.
+The `claude-design/` folder is a **mirror** of the user's Claude Design (claude.ai/design) bundle and is re-synced wholesale on request — do not hand-edit files there. The visual design originates from the HTML files in that folder (`Home.html`, `Prompts.html`, `Detail.html`, `Design System.html`, plus the mobile pair `Home Mobile.html` / `Home Mobile Preview.html`). The bundle's `claude-design/styles/tokens.css` and `claude-design/styles/components.css` have been **rewritten as Tailwind 4** in `resources/css/app.css`, which is the single source of truth for tokens (colors, fonts, spacing, type scale, radii, motion) and the `pl-*` component classes. Per-page styles that live as `<style>` blocks inside each HTML file are ported into the corresponding Blade view as they are built.
 
 Every Blade page composes from these primitives. **No bespoke CSS** is added outside `resources/css/app.css`; if a primitive is missing for a new page, the gap is recorded in this file rather than silently invented.
 
@@ -36,6 +36,8 @@ Every Blade page composes from these primitives. **No bespoke CSS** is added out
 | `Admin\Prompts\Index`      | `claude-design/Prompts.html` (table-ish; reuse `pl-card--row`) | 5 |
 | `Admin\Prompts\Form`       | New form — uses `pl-btn`, `pl-search__input`, plain `<textarea>` styled like `pl-search__input` | 5 |
 | `Admin\Tags\Index/Form`    | Reuse admin patterns                           | 5     |
+| `Home` (mobile layout)     | `claude-design/Home Mobile.html` — sticky compact header, swipeable card rails, 2-col tag grid, fixed bottom tab bar (Home/Search/Tags). `Home Mobile Preview.html` is a stage that renders this screen inside light + dark iOS device frames for review only. | 4 |
+| Design system reference    | `claude-design/Design System.html` — single-page catalog of every `pl-*` primitive (header variants, search, tags, buttons, cards, section heads, sidebar, empty state, footer). Use this when adding/auditing a component in `resources/css/app.css`. | — |
 
 ## Known gaps (filled when needed)
 

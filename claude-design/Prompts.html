@@ -265,10 +265,7 @@ const ARROW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
    State
    ============================================================ */
 const PAGE = 9, STEP = 6;
-const _hashTag = location.hash.startsWith('#tag=') ? decodeURIComponent(location.hash.slice(5)) : null;
-let state = _hashTag
-  ? { mode: 'tag', query: '', tag: _hashTag, sort: 'recent', visible: PAGE }
-  : { mode: 'tag', query: '', tag: 'writing', sort: 'recent', visible: PAGE };
+let state = { mode: 'tag', query: '', tag: 'writing', sort: 'recent', visible: PAGE };
 
 function fmtViews(n){ return n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/,'') + 'k' : String(n); }
 function escapeAttr(s){ return s.replace(/"/g,'&quot;'); }
@@ -402,7 +399,6 @@ function render() {
 
   bindCopy();
   bindTagClicks();
-  bindCardNav();
   syncSearchInput();
 }
 
@@ -425,19 +421,6 @@ function bindCopy() {
         btn.classList.add('is-copied'); const orig = btn.innerHTML; btn.innerHTML = CHECK_ICON;
         setTimeout(() => { btn.classList.remove('is-copied'); btn.innerHTML = orig; }, 1600);
       }
-    });
-  });
-}
-function bindCardNav() {
-  document.querySelectorAll('#results .pl-card').forEach(card => {
-    if (card.__navBound) return;
-    card.__navBound = true;
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('.pl-copy-icon') || e.target.closest('[data-tag]') || e.target.closest('.pl-tag')) return;
-      window.location.href = 'Detail.html';
-    });
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.href = 'Detail.html'; }
     });
   });
 }

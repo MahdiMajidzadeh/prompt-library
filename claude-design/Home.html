@@ -305,7 +305,7 @@ function cardRanked(p, rank) {
 }
 
 function tagTile(t) {
-  return `<a class="tag-tile" href="Prompts.html#tag=${t.name}"><span class="tag-tile__name">${t.name}</span><span class="tag-tile__count">${t.count}</span></a>`;
+  return `<a class="tag-tile" href="#"><span class="tag-tile__name">${t.name}</span><span class="tag-tile__count">${t.count}</span></a>`;
 }
 
 document.getElementById('recentGrid').innerHTML = RECENT.map(cardStandard).join('');
@@ -314,27 +314,8 @@ function renderPopular(showRanks) {
     ? POPULAR.map((p,i) => cardRanked(p, i+1)).join('')
     : POPULAR.map(cardStandard).join('');
   bindCopy();
-  bindCardNav();
 }
 document.getElementById('tagGrid').innerHTML = TAGS.map(tagTile).join('');
-bindCopy();
-bindCardNav();
-
-/* ---- card navigation ---- */
-function bindCardNav() {
-  document.querySelectorAll('.pl-card').forEach(card => {
-    if (card.__navBound) return;
-    card.__navBound = true;
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('.pl-copy-icon') || e.target.closest('.pl-tag')) return;
-      window.location.href = 'Detail.html';
-    });
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.href = 'Detail.html'; }
-    });
-  });
-}
 
 /* ---- copy interaction ---- */
 function bindCopy() {
