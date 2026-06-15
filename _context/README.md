@@ -18,6 +18,7 @@ Reference docs for working on this codebase with Claude Code. Each file is a sel
 | [10-dev-workflow.md](./10-dev-workflow.md) | Setup, dev/build commands, env vars, scheduler. |
 | [11-conventions.md](./11-conventions.md) | Coding style, what to do, what to avoid. |
 | [12-deployment.md](./12-deployment.md) | Deploy to a Linux VPS — nginx, PHP-FPM, MySQL, cron, SSL. |
+| [14-seo.md](./14-seo.md) | Sitemap auto-regeneration, robots.txt, meta tags, JSON-LD. |
 
 ## How this folder is meant to be used
 
