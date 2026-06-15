@@ -74,8 +74,10 @@ Triggered by the form-wrapped button in `resources/views/components/admin-shell.
 Run via the seeder chain in `DatabaseSeeder.php`:
 
 ```php
-$this->call([AdminUserSeeder::class, TagSeeder::class, PromptSeeder::class]);
+$this->call([AdminUserSeeder::class]);
 ```
+
+`AdminUserSeeder` is the only seeder shipped with the project. Tags and prompts are created exclusively through the admin UI.
 
 Local default in `.env.example:67-69`:
 

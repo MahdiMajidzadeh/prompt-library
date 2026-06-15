@@ -35,6 +35,10 @@ class Show extends Component
             'prompts' => $prompts,
             'total' => $total,
             'hasMore' => $total > $prompts->count(),
-        ])->title('Tag: '.$this->tag->name);
+        ])
+            ->title('Tag: '.$this->tag->name)
+            ->layoutData([
+                'description' => "Browse {$total} prompts tagged “{$this->tag->name}” — copy-ready prompts for AI assistants.",
+            ]);
     }
 }

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prompt Library — Design System</title>
+<link rel="stylesheet" href="styles/tokens.css" />
+<link rel="stylesheet" href="styles/components.css" />
+<style>
+  /* ---- Style-guide page chrome ---- */
+  .sg-wrap { max-width: var(--width-content); margin: 0 auto; padding: var(--space-8) var(--space-5) var(--space-10); }
+  .sg-topbar {
+    position: sticky; top: 0; z-index: 60;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: var(--border-hairline) solid var(--border);
+  }
+  .sg-topbar__inner {
+    max-width: var(--width-content); margin: 0 auto;
+    padding: var(--space-3) var(--space-5);
+    display: flex; align-items: center; gap: var(--space-4);
+  }
+  .sg-topbar__title { font-weight: var(--weight-semibold); letter-spacing: var(--tracking-snug); font-size: var(--text-sm); white-space: nowrap; }
+  .sg-topbar__tag { white-space: nowrap; }
+  .sg-topbar__tag { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); padding: 2px 8px; border: 1px solid var(--border); border-radius: var(--radius-full); }
+  .sg-topbar__spacer { margin-left: auto; }
+  .sg-controls { display: flex; align-items: center; gap: var(--space-3); }
+
+  /* accent swatch picker */
+  .sg-accents { display: flex; gap: var(--space-2); align-items: center; }
+  .sg-accent-dot {
+    width: 24px; height: 24px; border-radius: var(--radius-full);
+    border: 2px solid var(--border); cursor: pointer; padding: 0;
+    transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .sg-accent-dot:hover { transform: scale(1.12); }
+  .sg-accent-dot[aria-pressed='true'] { border-color: var(--text); transform: scale(1.12); }
+
+  .sg-toggle {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    height: 36px; padding: 0 var(--space-3);
+    border: var(--border-hairline) solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface); color: var(--text-secondary);
+    font-size: var(--text-sm); font-family: var(--font-ui); cursor: pointer;
+    transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .sg-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+  .sg-toggle svg { width: 16px; height: 16px; }
+
+  /* page header */
+  .sg-hero { padding: var(--space-8) 0 var(--space-6); border-bottom: var(--border-hairline) solid var(--border); margin-bottom: var(--space-8); }
+  .sg-hero__eyebrow { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--accent); margin: 0 0 var(--space-3); }
+  .sg-hero__title { font-size: var(--text-3xl); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); margin: 0 0 var(--space-3); line-height: var(--leading-tight); }
+  .sg-hero__lede { font-size: var(--text-md); color: var(--text-secondary); max-width: var(--width-reading); margin: 0; line-height: var(--leading-relaxed); }
+
+  /* section scaffolding */
+  .sg-section { padding: var(--space-8) 0; border-bottom: var(--border-hairline) solid var(--border); }
+  .sg-section:last-of-type { border-bottom: none; }
+  .sg-section__head { margin-bottom: var(--space-6); }
+  .sg-section__num { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); letter-spacing: var(--tracking-wide); }
+  .sg-section__title { font-size: var(--text-2xl); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-tight); margin: var(--space-1) 0 var(--space-2); }
+  .sg-section__desc { font-size: var(--text-sm); color: var(--text-secondary); max-width: var(--width-reading); margin: 0; line-height: var(--leading-relaxed); }
+
+  .sg-block { margin-bottom: var(--space-7); }
+  .sg-block:last-child { margin-bottom: 0; }
+  .sg-block__label {
+    font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-wide);
+    text-transform: uppercase; color: var(--text-tertiary); margin: 0 0 var(--space-4);
+    display: flex; align-items: center; gap: var(--space-3);
+  }
+  .sg-block__label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* demo surface */
+  .sg-demo {
+    background: var(--surface-soft);
+    border: var(--border-hairline) solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+  }
+  .sg-demo--plain { background: transparent; border: none; padding: 0; }
+  .sg-demo--inset { background: var(--bg); }
+  .sg-demo + .sg-caption, .sg-variant + .sg-caption { margin-top: var(--space-2); }
+  .sg-caption { font-size: var(--text-xs); color: var(--text-tertiary); font-family: var(--font-mono); }
+
+  .sg-variants { display: grid; gap: var(--space-5); }
+  .sg-variant__name { font-size: var(--text-sm); font-weight: var(--weight-medium); margin: 0 0 var(--space-3); display: flex; align-items: baseline; gap: var(--space-2); }
+  .sg-variant__name span { font-size: var(--text-xs); color: var(--text-tertiary); font-weight: var(--weight-regular); }
+
+  /* type specimens */
+  .sg-type-row { display: flex; align-items: baseline; gap: var(--space-5); padding: var(--space-3) 0; border-bottom: var(--border-hairline) solid var(--border); }
+  .sg-type-row:last-child { border-bottom: none; }
+  .sg-type-row__meta { width: 130px; flex-shrink: 0; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); line-height: var(--leading-snug); }
+  .sg-type-row__meta b { display: block; color: var(--text-secondary); font-weight: var(--weight-medium); }
+  .sg-type-row__sample { letter-spacing: var(--tracking-tight); min-width: 0; }
+
+  /* color grid */
+  .sg-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-3); }
+  .sg-swatch { border: var(--border-hairline) solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--surface); }
+  .sg-swatch__chip { height: 72px; }
+  .sg-swatch__meta { padding: var(--space-3); }
+  .sg-swatch__name { font-size: var(--text-sm); font-weight: var(--weight-medium); margin: 0; }
+  .sg-swatch__val { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); margin: 2px 0 0; }
+
+  /* accent option cards */
+  .sg-accent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-3); }
+  .sg-accent-card {
+    border: var(--border-hairline) solid var(--border); border-radius: var(--radius-md);
+    padding: var(--space-4); background: var(--surface); cursor: pointer; text-align: left;
+    display: flex; flex-direction: column; gap: var(--space-3);
+    transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .sg-accent-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+  .sg-accent-card[aria-pressed='true'] { border-color: var(--text); }
+  .sg-accent-card__swatch { height: 48px; border-radius: var(--radius-sm); }
+  .sg-accent-card__name { font-size: var(--text-sm); font-weight: var(--weight-medium); margin: 0; }
+  .sg-accent-card__hex { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); margin: 2px 0 0; }
+  .sg-accent-card__current { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent); margin: 0; opacity: 0; }
+  .sg-accent-card[aria-pressed='true'] .sg-accent-card__current { opacity: 1; }
+
+  /* spacing scale */
+  .sg-space-row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-2) 0; }
+  .sg-space-row__meta { width: 120px; flex-shrink: 0; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); }
+  .sg-space-row__bar { height: 16px; background: var(--accent); border-radius: 3px; }
+  .sg-radii { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+  .sg-radius { display: flex; flex-direction: column; gap: var(--space-2); align-items: center; }
+  .sg-radius__box { width: 72px; height: 72px; background: var(--accent-soft); border: var(--border-hairline) solid var(--accent); }
+  .sg-radius__label { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); }
+
+  .sg-row { display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center; }
+  .sg-stack { display: flex; flex-direction: column; gap: var(--space-4); }
+
+  .sg-layout-demo { display: flex; gap: var(--space-6); align-items: flex-start; }
+  .sg-layout-demo__main { flex: 1; min-width: 0; }
+
+  @media (max-width: 720px) {
+    .sg-type-row { flex-direction: column; gap: var(--space-1); }
+    .sg-type-row__meta { width: auto; }
+    .sg-layout-demo { flex-direction: column; }
+    .pl-sidebar { width: 100%; }
+    .sg-controls .sg-accents { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ STYLE GUIDE TOPBAR ============ -->
+<div class="sg-topbar">
+  <div class="sg-topbar__inner">
+    <span class="sg-topbar__title">Prompt Library</span>
+    <span class="sg-topbar__tag">Design System v1</span>
+    <div class="sg-topbar__spacer"></div>
+    <div class="sg-controls">
+      <div class="sg-accents" role="group" aria-label="Accent color">
+        <button class="sg-accent-dot" data-accent="indigo" style="background:#4F46E5" aria-pressed="true" title="Indigo"></button>
+        <button class="sg-accent-dot" data-accent="terracotta" style="background:#C2410C" aria-pressed="false" title="Terracotta"></button>
+        <button class="sg-accent-dot" data-accent="forest" style="background:#15803D" aria-pressed="false" title="Forest"></button>
+        <button class="sg-accent-dot" data-accent="slate" style="background:#1E3A8A" aria-pressed="false" title="Slate blue"></button>
+        <button class="sg-accent-dot" data-accent="plum" style="background:#9333EA" aria-pressed="false" title="Plum"></button>
+      </div>
+      <button class="sg-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <svg class="sg-toggle__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <span id="themeLabel">Dark</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sg-wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="sg-hero">
+    <p class="sg-hero__eyebrow">Design System</p>
+    <h1 class="sg-hero__title">Prompt Library</h1>
+    <p class="sg-hero__lede">A calm, editorial, content-first system for browsing and copying AI prompts. Near-monochrome by design, with one restrained accent and a clear split between UI chrome (sans) and literal prompt text (monospace). Try the accent swatches and dark-mode toggle above — every component reacts live.</p>
+  </header>
+
+  <!-- ============ 01 TYPOGRAPHY ============ -->
+  <section class="sg-section" id="type">
+    <div class="sg-section__head">
+      <span class="sg-section__num">01 — Foundations</span>
+      <h2 class="sg-section__title">Typography</h2>
+      <p class="sg-section__desc">Geist for UI and headings; Geist Mono for prompt text, code, counts, and metadata. The monospace is deliberate — it signals "this is the literal, copyable machine text," visually distinct from the chrome around it.</p>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Type scale — Geist</p>
+      <div class="sg-demo sg-demo--plain">
+        <div class="sg-type-row"><div class="sg-type-row__meta"><b>Display</b>60 / 700 · -2%</div><div class="sg-type-row__sample" style="font-size:var(--text-4xl);font-weight:var(--weight-bold);line-height:1.05">Prompt Library</div></div>
+        <div class="sg-type-row"><div class="sg-type-row__meta"><b>H1</b>48 / 600</div><div class="sg-type-row__sample" style="font-size:var(--text-3xl);font-weight:var(--weight-semibold)">Browse better prompts</div></div>
+        <div class="sg-type-row"><div class="sg-type-row__meta"><b>H2</b>36 / 600</div><div class="sg-type-row__sample" style="font-size:var(--text-2xl);font-weight:var(--weight-semibold)">Section heading</div></div>
+        <div class="sg-type-row"><div class="sg-type-row__meta"><b>H3</b>28 / 600</div><div class="sg-type-row__sample" style="font-size:var(--text-xl);font-weight:var(--weight-semibold)">Subsection title</div></div>
+        <div class="sg-type-row"><div class="sg-type-row__meta"><b>Lead</b>22 / 400</div><div class="sg-type-row__sample" style="font-size:var(--text-lg);font-weight:var(--weight-regular);color:var(--text-secondary)">A larger lead paragraph for intros</div></div>
+        <div class="sg-type-row"><div class="sg-type-row__meta"><b>Body</b>16 / 400 · 1.5</div><div class="sg-type-row__sample" style="font-size:var(--text-base)">The quick brown fox jumps over the lazy dog and copies a prompt.</div></div>
+        <div class="sg-type-row"><div class="sg-type-row__meta"><b>Small</b>14 / 400</div><div class="sg-type-row__sample" style="font-size:var(--text-sm);color:var(--text-secondary)">Secondary and supporting copy</div></div>
+        <div class="sg-type-row"><div class="sg-type-row__meta"><b>Caption</b>12 / 500 · uppercase</div><div class="sg-type-row__sample" style="font-size:var(--text-xs);letter-spacing:var(--tracking-wider);text-transform:uppercase;color:var(--text-tertiary)">Label · Eyebrow</div></div>
+      </div>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Prompt text — Geist Mono</p>
+      <div class="sg-demo">
+        <pre style="font-family:var(--font-mono);font-size:var(--text-base);line-height:var(--leading-relaxed);margin:0;color:var(--text);white-space:pre-wrap">You are a senior copy editor. Rewrite the text below to be
+clearer and more concise without changing its meaning. Keep
+the original tone. Return only the revised text.</pre>
+      </div>
+      <p class="sg-caption" style="margin-top:var(--space-2)">14–16px · line-height 1.7 · always on a tinted code surface</p>
+    </div>
+  </section>
+
+  <!-- ============ 02 COLOR ============ -->
+  <section class="sg-section" id="color">
+    <div class="sg-section__head">
+      <span class="sg-section__num">02 — Foundations</span>
+      <h2 class="sg-section__title">Color</h2>
+      <p class="sg-section__desc">Near-monochrome: a warm off-white ground, near-black text, muted grays, and hairline borders. All neutrals are theme-aware tokens, so the same component renders correctly in light and dark. Text on background meets WCAG AA.</p>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Neutral tokens — current theme</p>
+      <div class="sg-swatches" id="neutralSwatches"></div>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Accent — pick the default (applies live)</p>
+      <div class="sg-accent-grid" id="accentGrid"></div>
+      <p class="sg-caption" style="margin-top:var(--space-3)">One accent only — links, the copy button, active tags, and focus rings. Everything else stays neutral. Swap it here or from the top bar; the whole system follows.</p>
+    </div>
+  </section>
+
+  <!-- ============ 03 SPACING ============ -->
+  <section class="sg-section" id="spacing">
+    <div class="sg-section__head">
+      <span class="sg-section__num">03 — Foundations</span>
+      <h2 class="sg-section__title">Spacing, radii &amp; layout</h2>
+      <p class="sg-section__desc">An 8px base grid keeps rhythm consistent. Content maxes out at 1080px; reading-heavy views narrow to 720px.</p>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Spacing scale (8px base)</p>
+      <div id="spaceScale"></div>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Corner radii</p>
+      <div class="sg-radii">
+        <div class="sg-radius"><div class="sg-radius__box" style="border-radius:var(--radius-sm)"></div><span class="sg-radius__label">sm · 6px</span></div>
+        <div class="sg-radius"><div class="sg-radius__box" style="border-radius:var(--radius-md)"></div><span class="sg-radius__label">md · 10px</span></div>
+        <div class="sg-radius"><div class="sg-radius__box" style="border-radius:var(--radius-lg)"></div><span class="sg-radius__label">lg · 14px</span></div>
+        <div class="sg-radius"><div class="sg-radius__box" style="border-radius:var(--radius-full)"></div><span class="sg-radius__label">full · pill</span></div>
+      </div>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Content widths</p>
+      <div class="sg-stack">
+        <div>
+          <div style="max-width:var(--width-content);height:36px;background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--radius-sm);display:flex;align-items:center;padding:0 var(--space-3);font-family:var(--font-mono);font-size:var(--text-xs);color:var(--accent)">1080px — grids &amp; app shell</div>
+        </div>
+        <div>
+          <div style="max-width:var(--width-reading);height:36px;background:var(--surface-soft);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;padding:0 var(--space-3);font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-secondary)">720px — reading / prompt detail</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 HEADER ============ -->
+  <section class="sg-section" id="header">
+    <div class="sg-section__head">
+      <span class="sg-section__num">04 — Components</span>
+      <h2 class="sg-section__title">Header</h2>
+      <p class="sg-section__desc">Sticky on scroll with a translucent blur. Three takes — pick one as the canonical app header. All keep tap targets ≥ 44px and collapse gracefully on mobile.</p>
+    </div>
+
+    <div class="sg-variants">
+      <div class="sg-variant">
+        <p class="sg-variant__name">Variant A — Inline search <span>· wordmark left, search fills, nav right</span></p>
+        <div class="sg-demo sg-demo--inset" style="padding:0;overflow:hidden">
+          <header class="pl-header" style="position:static">
+            <div class="pl-header__inner">
+              <a class="pl-wordmark"><span class="pl-wordmark__mark pl-wordmark__mark--accent">P</span> Prompt Library</a>
+              <div class="pl-header__search">
+                <div class="pl-search">
+                  <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input class="pl-search__input" type="text" placeholder="Search prompts…" />
+                  <span class="pl-search__kbd">⌘K</span>
+                </div>
+              </div>
+              <nav class="pl-header__nav">
+                <a class="pl-navlink pl-navlink--active">Browse</a>
+                <a class="pl-navlink">Categories</a>
+                <a class="pl-navlink">Submit</a>
+              </nav>
+            </div>
+          </header>
+        </div>
+      </div>
+
+      <div class="sg-variant">
+        <p class="sg-variant__name">Variant B — Centered search <span>· wordmark left, prominent center search, nav right</span></p>
+        <div class="sg-demo sg-demo--inset" style="padding:0;overflow:hidden">
+          <header class="pl-header pl-header--centered" style="position:static">
+            <div class="pl-header__inner">
+              <a class="pl-wordmark"><span class="pl-wordmark__mark">P</span> Prompt Library</a>
+              <div class="pl-header__search">
+                <div class="pl-search">
+                  <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input class="pl-search__input" type="text" placeholder="Search 1,200+ prompts…" />
+                </div>
+              </div>
+              <nav class="pl-header__nav">
+                <a class="pl-navlink">Categories</a>
+                <a class="pl-btn pl-btn--secondary" style="height:36px;padding:0 var(--space-4)">Submit</a>
+              </nav>
+            </div>
+          </header>
+        </div>
+      </div>
+
+      <div class="sg-variant">
+        <p class="sg-variant__name">Variant C — Minimal <span>· wordmark + nav only, search collapses to an icon</span></p>
+        <div class="sg-demo sg-demo--inset" style="padding:0;overflow:hidden">
+          <header class="pl-header pl-header--minimal" style="position:static">
+            <div class="pl-header__inner">
+              <a class="pl-wordmark"><span class="pl-wordmark__mark pl-wordmark__mark--accent">P</span> Prompt Library</a>
+              <nav class="pl-header__nav">
+                <a class="pl-navlink pl-navlink--active">Browse</a>
+                <a class="pl-navlink">Categories</a>
+                <a class="pl-navlink">About</a>
+                <button class="pl-copy-icon" aria-label="Search" style="cursor:pointer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                </button>
+              </nav>
+            </div>
+          </header>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 PROMPT CARD ============ -->
+  <section class="sg-section" id="card">
+    <div class="sg-section__head">
+      <span class="sg-section__num">05 — Components</span>
+      <h2 class="sg-section__title">Prompt card</h2>
+      <p class="sg-section__desc">The workhorse of the grid. Title, a 2–3 line monospace preview, tag pills, and a view count. The whole card is clickable; a copy icon fades in on hover (try it). Three takes below — hover each.</p>
+    </div>
+
+    <div class="sg-variants">
+      <div class="sg-variant">
+        <p class="sg-variant__name">Variant A — Standard <span>· preview in a code surface, copy icon on hover</span></p>
+        <div class="sg-grid" id="cardsA"></div>
+      </div>
+
+      <div class="sg-variant">
+        <p class="sg-variant__name">Variant B — Accent rail <span>· flatter, a thin accent bar appears on hover</span></p>
+        <div class="sg-grid" id="cardsB"></div>
+      </div>
+
+      <div class="sg-variant">
+        <p class="sg-variant__name">Variant C — Compact row <span>· for dense lists & search results</span></p>
+        <div class="sg-stack" id="cardsC"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 TAG PILL + COPY + SEARCH ============ -->
+  <section class="sg-section" id="atoms">
+    <div class="sg-section__head">
+      <span class="sg-section__num">06 — Components</span>
+      <h2 class="sg-section__title">Tags, buttons &amp; search</h2>
+      <p class="sg-section__desc">The small, reused atoms. Hover and active states only — motion stays fast and minimal.</p>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Tag pill — default · hover · active (selected)</p>
+      <div class="sg-demo">
+        <div class="sg-row">
+          <span class="pl-tag pl-tag--static">Writing</span>
+          <span class="pl-tag pl-tag--static">Coding</span>
+          <span class="pl-tag pl-tag--active pl-tag--static">Marketing</span>
+          <span class="pl-tag pl-tag--static">Analysis</span>
+          <span class="pl-tag pl-tag--static">Roleplay</span>
+          <span class="pl-tag pl-tag--sm pl-tag--static">+12</span>
+        </div>
+        <p class="sg-caption" style="margin-top:var(--space-4)">Click to toggle — these are live:</p>
+        <div class="sg-row" id="liveTags" style="margin-top:var(--space-2)"></div>
+      </div>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Buttons &amp; copy — click "Copy prompt" to see the confirmation</p>
+      <div class="sg-demo">
+        <div class="sg-row">
+          <button class="pl-btn pl-btn--primary" data-copy="You are a helpful assistant.">
+            <svg class="pl-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copy prompt</span>
+          </button>
+          <button class="pl-btn pl-btn--secondary">Open prompt</button>
+          <button class="pl-btn pl-btn--ghost">Share</button>
+          <button class="pl-copy-icon" data-copy="You are a helpful assistant." aria-label="Copy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+        <p class="sg-caption" style="margin-top:var(--space-4)">Primary uses the accent · subtle icon button sits on cards · "Copied" reverts after 1.6s</p>
+      </div>
+    </div>
+
+    <div class="sg-block">
+      <p class="sg-block__label">Search input — default &amp; focus</p>
+      <div class="sg-demo">
+        <div class="sg-stack" style="max-width:480px">
+          <div class="pl-search">
+            <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input class="pl-search__input" type="text" placeholder="Search prompts…" />
+            <span class="pl-search__kbd">⌘K</span>
+          </div>
+          <div class="pl-search">
+            <svg class="pl-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input class="pl-search__input" type="text" value="code review" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 SECTION HEADER ============ -->
+  <section class="sg-section" id="sectionhead">
+    <div class="sg-section__head">
+      <span class="sg-section__num">07 — Components</span>
+      <h2 class="sg-section__title">Section header</h2>
+      <p class="sg-section__desc">Introduces a band of content. Title on the left, an optional "View all" link on the right.</p>
+    </div>
+    <div class="sg-demo">
+      <div class="pl-section-head">
+        <div>
+          <h3 class="pl-section-head__title">Popular this week</h3>
+          <p class="pl-section-head__sub">The prompts people are copying most</p>
+        </div>
+        <a class="pl-viewall">View all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <div style="height:1px;background:var(--border);margin:var(--space-4) 0"></div>
+      <div class="pl-section-head" style="margin-bottom:0">
+        <h3 class="pl-section-head__title">Writing</h3>
+        <a class="pl-viewall">View all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 08 SIDEBAR ============ -->
+  <section class="sg-section" id="sidebar">
+    <div class="sg-section__head">
+      <span class="sg-section__num">08 — Components</span>
+      <h2 class="sg-section__title">Category &amp; filter sidebar</h2>
+      <p class="sg-section__desc">Persistent left rail for browse views. Counts in monospace; the active item carries the accent. Click to switch.</p>
+    </div>
+    <div class="sg-demo">
+      <div class="sg-layout-demo">
+        <aside class="pl-sidebar">
+          <div class="pl-sidebar__group">
+            <p class="pl-sidebar__label">Categories</p>
+            <ul class="pl-sidebar__list" id="sidebarCats"></ul>
+          </div>
+          <div class="pl-sidebar__group" style="margin-bottom:0">
+            <p class="pl-sidebar__label">Sort</p>
+            <ul class="pl-sidebar__list">
+              <li class="pl-sidebar__item pl-sidebar__item--active">Most copied</li>
+              <li class="pl-sidebar__item">Newest</li>
+              <li class="pl-sidebar__item">A–Z</li>
+            </ul>
+          </div>
+        </aside>
+        <div class="sg-layout-demo__main">
+          <div class="pl-section-head">
+            <h3 class="pl-section-head__title">Writing</h3>
+            <a class="pl-viewall">View all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <div class="sg-grid" id="cardsSidebar"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 09 EMPTY STATE ============ -->
+  <section class="sg-section" id="empty">
+    <div class="sg-section__head">
+      <span class="sg-section__num">09 — Components</span>
+      <h2 class="sg-section__title">Empty state</h2>
+      <p class="sg-section__desc">Shown when search or filters return nothing. Calm, helpful, never a dead end.</p>
+    </div>
+    <div class="sg-demo sg-demo--inset">
+      <div class="pl-empty">
+        <div class="pl-empty__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+        <h3 class="pl-empty__title">No prompts found</h3>
+        <p class="pl-empty__text">We couldn't find anything for "<span style="font-family:var(--font-mono);color:var(--text)">quantum haiku</span>". Try a different keyword or clear your filters.</p>
+        <button class="pl-btn pl-btn--secondary">Clear filters</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 10 FOOTER ============ -->
+  <section class="sg-section" id="footer">
+    <div class="sg-section__head">
+      <span class="sg-section__num">10 — Components</span>
+      <h2 class="sg-section__title">Footer</h2>
+      <p class="sg-section__desc">Minimal. A hairline divider, the wordmark, a short link row, and a quiet copyright.</p>
+    </div>
+    <div class="sg-demo sg-demo--inset" style="padding:0;overflow:hidden">
+      <footer class="pl-footer" style="margin-top:0">
+        <div class="pl-footer__inner">
+          <a class="pl-wordmark" style="font-size:var(--text-base)"><span class="pl-wordmark__mark">P</span> Prompt Library</a>
+          <nav class="pl-footer__links">
+            <a class="pl-footer__link">Browse</a>
+            <a class="pl-footer__link">Categories</a>
+            <a class="pl-footer__link">Submit a prompt</a>
+            <a class="pl-footer__link">About</a>
+          </nav>
+          <span class="pl-footer__copy">© 2026 Prompt Library</span>
+        </div>
+      </footer>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Data
+   ============================================================ */
+const PROMPTS = [
+  { title: 'Senior copy editor', preview: 'You are a senior copy editor. Rewrite the text below to be clearer and more concise without changing its meaning. Keep the tone.', tags: ['Writing', 'Editing'], views: '4.2k' },
+  { title: 'Code review buddy', preview: 'Review this code for bugs, edge cases, and readability. List issues by severity. Suggest concrete fixes with short snippets.', tags: ['Coding', 'Review'], views: '8.9k' },
+  { title: 'Cold email rewrite', preview: 'Rewrite this cold email to be warmer and 40% shorter. Lead with the recipient\'s problem. One clear call to action.', tags: ['Marketing', 'Email'], views: '3.1k' },
+  { title: 'Socratic tutor', preview: 'Act as a Socratic tutor. Never give the answer directly — ask guiding questions until I reach it myself. Adjust to my level.', tags: ['Learning'], views: '6.5k' },
+  { title: 'Meeting → action items', preview: 'From the transcript below, extract decisions and action items. Format as a table: owner, task, due date. Flag anything unclear.', tags: ['Productivity'], views: '5.7k' },
+  { title: 'Explain like a peer', preview: 'Explain this concept to a smart colleague who is new to the field. Use one analogy. No jargon without defining it first.', tags: ['Learning', 'Writing'], views: '2.8k' },
+];
+
+const CATEGORIES = [
+  { name: 'All prompts', count: '1,204', active: false },
+  { name: 'Writing', count: '312', active: true },
+  { name: 'Coding', count: '287', active: false },
+  { name: 'Marketing', count: '194', active: false },
+  { name: 'Productivity', count: '156', active: false },
+  { name: 'Learning', count: '143', active: false },
+  { name: 'Roleplay', count: '112', active: false },
+];
+
+const ACCENTS = [
+  { id: 'indigo', name: 'Deep indigo', hex: '#4F46E5', hover: '#4338CA' },
+  { id: 'terracotta', name: 'Terracotta', hex: '#C2410C', hover: '#9A3412' },
+  { id: 'forest', name: 'Forest', hex: '#15803D', hover: '#166534' },
+  { id: 'slate', name: 'Slate blue', hex: '#1E40AF', hover: '#1E3A8A' },
+  { id: 'plum', name: 'Plum', hex: '#9333EA', hover: '#7E22CE' },
+];
+
+const NEUTRALS = ['--bg','--surface','--surface-soft','--text','--text-secondary','--text-tertiary','--border','--border-strong'];
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+/* ============================================================
+   Card builders
+   ============================================================ */
+function tagPills(tags) {
+  return tags.map(t => `<span class="pl-tag">${t}</span>`).join('');
+}
+function cardStandard(p, modifier = '') {
+  return `
+  <article class="pl-card ${modifier}" tabindex="0" data-copy="${escapeAttr(p.preview)}">
+    <div class="pl-card__head">
+      <h3 class="pl-card__title">${p.title}</h3>
+      <button class="pl-copy-icon pl-card__copy" aria-label="Copy prompt" data-copy="${escapeAttr(p.preview)}">${COPY_ICON}</button>
+    </div>
+    <pre class="pl-card__preview">${p.preview}</pre>
+    <div class="pl-card__tags">${tagPills(p.tags)}</div>
+    <div class="pl-card__foot">
+      <div class="pl-card__tags"></div>
+      <span class="pl-meta">${EYE_ICON} ${p.views}</span>
+    </div>
+  </article>`;
+}
+function cardRow(p) {
+  return `
+  <article class="pl-card pl-card--row" tabindex="0" data-copy="${escapeAttr(p.preview)}">
+    <div class="pl-card__main">
+      <h3 class="pl-card__title">${p.title}</h3>
+      <pre class="pl-card__preview">${p.preview}</pre>
+    </div>
+    <div class="pl-card__tags">${tagPills(p.tags.slice(0,1))}</div>
+    <span class="pl-meta">${EYE_ICON} ${p.views}</span>
+    <button class="pl-copy-icon pl-card__copy" aria-label="Copy prompt" data-copy="${escapeAttr(p.preview)}">${COPY_ICON}</button>
+  </article>`;
+}
+function escapeAttr(s){ return s.replace(/"/g,'&quot;'); }
+
+/* ============================================================
+   Render
+   ============================================================ */
+function render() {
+  document.getElementById('cardsA').innerHTML = PROMPTS.slice(0,3).map(p => cardStandard(p)).join('');
+  document.getElementById('cardsB').innerHTML = PROMPTS.slice(0,3).map(p => cardStandard(p,'pl-card--rail')).join('');
+  document.getElementById('cardsC').innerHTML = PROMPTS.slice(0,4).map(cardRow).join('');
+  document.getElementById('cardsSidebar').innerHTML = PROMPTS.slice(2,6).map(p => cardStandard(p)).join('');
+
+  // accent grid
+  document.getElementById('accentGrid').innerHTML = ACCENTS.map(a => `
+    <button class="sg-accent-card" data-accent="${a.id}" aria-pressed="${a.id===currentAccent}">
+      <div class="sg-accent-card__swatch" style="background:${a.hex}"></div>
+      <div>
+        <p class="sg-accent-card__name">${a.name}</p>
+        <p class="sg-accent-card__hex">${a.hex}</p>
+      </div>
+      <p class="sg-accent-card__current">● Active</p>
+    </button>`).join('');
+
+  // sidebar
+  document.getElementById('sidebarCats').innerHTML = CATEGORIES.map(c => `
+    <li class="pl-sidebar__item ${c.active?'pl-sidebar__item--active':''}">
+      <span>${c.name}</span><span class="pl-sidebar__count">${c.count}</span>
+    </li>`).join('');
+
+  // live tags
+  const liveTagNames = ['Writing','Coding','Marketing','Analysis','Roleplay','Productivity'];
+  document.getElementById('liveTags').innerHTML = liveTagNames.map((t,i) => `<span class="pl-tag ${i===0?'pl-tag--active':''}">${t}</span>`).join('');
+
+  renderNeutrals();
+  renderSpaceScale();
+  bindCopy();
+  bindTags();
+  bindSidebar();
+}
+
+function renderNeutrals() {
+  const styles = getComputedStyle(document.documentElement);
+  document.getElementById('neutralSwatches').innerHTML = NEUTRALS.map(tok => {
+    const val = styles.getPropertyValue(tok).trim();
+    const name = tok.replace('--','').replace(/-/g,' ');
+    return `<div class="sg-swatch">
+      <div class="sg-swatch__chip" style="background:var(${tok})"></div>
+      <div class="sg-swatch__meta"><p class="sg-swatch__name">${name}</p><p class="sg-swatch__val">${val}</p></div>
+    </div>`;
+  }).join('');
+}
+
+function renderSpaceScale() {
+  const steps = [
+    ['space-1','4px'],['space-2','8px'],['space-3','12px'],['space-4','16px'],
+    ['space-5','24px'],['space-6','32px'],['space-7','40px'],['space-8','48px'],['space-9','64px']
+  ];
+  document.getElementById('spaceScale').innerHTML = steps.map(([tok,px]) => `
+    <div class="sg-space-row">
+      <div class="sg-space-row__meta">--${tok} · ${px}</div>
+      <div class="sg-space-row__bar" style="width:${px}"></div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   Interactions
+   ============================================================ */
+function bindCopy() {
+  document.querySelectorAll('[data-copy]').forEach(el => {
+    if (el.__bound) return;
+    el.__bound = true;
+    el.addEventListener('click', (e) => {
+      // if a child copy button was clicked, let it handle and stop card nav
+      const btn = e.target.closest('[data-copy]');
+      if (btn !== el && el.classList.contains('pl-card')) return;
+      e.stopPropagation();
+      const text = el.getAttribute('data-copy');
+      if (navigator.clipboard) navigator.clipboard.writeText(text).catch(()=>{});
+      showCopied(btn || el);
+    });
+  });
+}
+function showCopied(el) {
+  if (el.classList.contains('pl-copy-icon')) {
+    el.classList.add('is-copied');
+    const orig = el.innerHTML;
+    el.innerHTML = CHECK_ICON;
+    setTimeout(() => { el.classList.remove('is-copied'); el.innerHTML = orig; }, 1600);
+  } else if (el.classList.contains('pl-btn')) {
+    el.classList.add('is-copied');
+    const label = el.querySelector('span');
+    const orig = label ? label.textContent : '';
+    if (label) label.textContent = 'Copied';
+    const icon = el.querySelector('.pl-btn__icon');
+    const iconOrig = icon ? icon.outerHTML : '';
+    if (icon) icon.outerHTML = '<svg class="pl-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+    setTimeout(() => {
+      el.classList.remove('is-copied');
+      if (label) label.textContent = orig;
+      const ni = el.querySelector('.pl-btn__icon');
+      if (ni && iconOrig) ni.outerHTML = iconOrig;
+    }, 1600);
+  }
+}
+function bindTags() {
+  document.querySelectorAll('#liveTags .pl-tag').forEach(t => {
+    t.addEventListener('click', () => t.classList.toggle('pl-tag--active'));
+  });
+}
+function bindSidebar() {
+  const items = document.querySelectorAll('#sidebarCats .pl-sidebar__item');
+  items.forEach(it => it.addEventListener('click', () => {
+    items.forEach(x => x.classList.remove('pl-sidebar__item--active'));
+    it.classList.add('pl-sidebar__item--active');
+  }));
+}
+
+/* ---- Accent swapping ---- */
+let currentAccent = localStorage.getItem('pl-accent') || 'indigo';
+function applyAccent(id) {
+  const a = ACCENTS.find(x => x.id === id) || ACCENTS[0];
+  currentAccent = a.id;
+  document.documentElement.style.setProperty('--accent', a.hex);
+  document.documentElement.style.setProperty('--accent-hover', a.hover);
+  localStorage.setItem('pl-accent', a.id);
+  // sync controls
+  document.querySelectorAll('.sg-accent-dot').forEach(d => d.setAttribute('aria-pressed', String(d.dataset.accent === a.id)));
+  document.querySelectorAll('.sg-accent-card').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.accent === a.id)));
+}
+document.addEventListener('click', (e) => {
+  const dot = e.target.closest('[data-accent]');
+  if (dot) applyAccent(dot.dataset.accent);
+});
+
+/* ---- Dark mode ---- */
+const SUN = '<svg class="sg-toggle__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('pl-theme', theme);
+  const toggle = document.getElementById('themeToggle');
+  document.getElementById('themeLabel').textContent = theme === 'dark' ? 'Light' : 'Dark';
+  toggle.querySelector('svg').outerHTML = theme === 'dark' ? MOON : SUN;
+  renderNeutrals();
+}
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+});
+
+/* ---- Init ---- */
+applyTheme(localStorage.getItem('pl-theme') || 'light');
+render();
+applyAccent(currentAccent);
+</script>
+</body>
+</html>

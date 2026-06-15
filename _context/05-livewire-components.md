@@ -12,8 +12,11 @@ Every interactive page is a Livewire 3 component. Patterns are uniform across th
 | `Prompts\Latest` | `app/Livewire/Prompts/Latest.php` | `livewire/prompts/latest.blade.php` | Uses `WithInfiniteScroll`. |
 | `Prompts\MostViewed` | `app/Livewire/Prompts/MostViewed.php` | `livewire/prompts/most-viewed.blade.php` | Hard cap of 20, **no** infinite scroll. |
 | `Prompts\Show` | `app/Livewire/Prompts/Show.php` | `livewire/prompts/show.blade.php` | `mount()` aborts 404 if private and records a view. |
+| `Tags\Index` | `app/Livewire/Tags/Index.php` | `livewire/tags/index.blade.php` | Public tags index — lists every tag with at least one public prompt, sorted by name. |
 | `Tags\Show` | `app/Livewire/Tags/Show.php` | `livewire/tags/show.blade.php` | Uses `WithInfiniteScroll`. |
 | `Search` | `app/Livewire/Search.php` | `livewire/search.blade.php` | `#[Url(as: 'q')]` keeps `?q=` in sync. Uses `WithInfiniteScroll`. Matches title + tag name (never body). |
+| `Mobile\Search` | `app/Livewire/Mobile/Search.php` | `livewire/mobile/search.blade.php` | `/m/search`. Same query logic as `Search` but uses `components.layouts.mobile`. Linked from the bottom tab bar. |
+| `Mobile\Tags` | `app/Livewire/Mobile/Tags.php` | `livewire/mobile/tags.blade.php` | `/m/tags`. Same data as `Tags\Index` but rendered with `.m-taggrid` 2-col tiles inside the mobile layout. |
 | `Auth\Login` | `app/Livewire/Auth/Login.php` | `livewire/auth/login.blade.php` | Rate-limited 5/min per `(email, ip)`. |
 
 ### Admin
@@ -35,7 +38,7 @@ Every component declares the global layout explicitly:
 #[Layout('components.layouts.app')]
 ```
 
-Admin components use the same outer layout — the admin shell wraps via the `<x-admin-shell>` Blade component in the view (not via a different layout).
+Admin components use the same outer layout — the admin shell wraps via the `<x-admin-shell>` Blade component in the view (not via a different layout). The `Mobile\Search` and `Mobile\Tags` components instead declare `#[Layout('components.layouts.mobile')]`, which renders a phone-style chrome (compact sticky header + bottom tab bar, no desktop nav) at every viewport width.
 
 ### Title attribute
 Static titles use `#[Title('...')]`. Dynamic titles return from `render()`:

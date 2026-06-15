@@ -1222,4 +1222,240 @@
             gap: var(--spacing-2);
         }
     }
+
+    /* ---------- Mobile: hide header search (lives in bottom tab bar) ---------- */
+    @media (max-width: 720px) {
+        .pl-header__search {
+            display: none;
+        }
+        /* Copy icon always visible on touch — no hover to reveal it. */
+        .pl-card__copy {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /* ---------- Mobile: Home card sections become swipeable rails ---------- */
+    @media (max-width: 600px) {
+        .grid-2--rail {
+            display: flex;
+            gap: var(--spacing-3);
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: var(--spacing-1) var(--spacing-4) var(--spacing-3);
+            margin: 0 calc(-1 * var(--spacing-4));
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .grid-2--rail::-webkit-scrollbar {
+            display: none;
+        }
+        .grid-2--rail > * {
+            flex: 0 0 84%;
+            max-width: 320px;
+            scroll-snap-align: start;
+        }
+        /* Tag grid: exactly two columns on mobile, regardless of tile min width. */
+        .tag-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    /* ---------- Bottom tab bar ----------
+       Always rendered. On the desktop layout it is hidden above 720px;
+       on the mobile layout (body.m-body) it is visible at every width. */
+    .m-tabbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 60;
+        display: flex;
+        align-items: stretch;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        border-top: 1px solid var(--color-border);
+    }
+    .m-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        height: 64px;
+        min-width: 44px;
+        color: var(--color-text-tertiary);
+        font-family: var(--font-sans);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: var(--tracking-snug);
+        text-decoration: none;
+        transition: color var(--default-transition-duration) var(--default-transition-timing-function);
+    }
+    .m-tab svg {
+        width: 23px;
+        height: 23px;
+    }
+    .m-tab--active {
+        color: var(--color-accent);
+    }
+    .m-tab:active {
+        background: var(--color-surface-soft);
+    }
+    @media (min-width: 721px) {
+        body:not(.m-body) .m-tabbar {
+            display: none;
+        }
+    }
+    @media (max-width: 720px) {
+        body:not(.m-body) {
+            padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+        }
+    }
+
+    /* ---------- Mobile-only layout (body.m-body, /m/* routes) ---------- */
+    .m-body {
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    }
+    .m-main {
+        max-width: 480px;
+        margin: 0 auto;
+    }
+    .m-page {
+        padding: 0;
+    }
+    .m-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        padding-top: env(safe-area-inset-top, 0px);
+        background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--color-border);
+    }
+    .m-header__bar {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-3);
+        padding: var(--spacing-3) var(--spacing-4);
+        max-width: 480px;
+        margin: 0 auto;
+    }
+    .m-header__wordmark {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+        font-weight: 600;
+        font-size: var(--text-md);
+        letter-spacing: var(--tracking-snug);
+        text-decoration: none;
+        color: var(--color-text);
+    }
+    .m-header__spacer {
+        margin-left: auto;
+    }
+    .m-iconbtn {
+        width: 40px;
+        height: 40px;
+        display: inline-grid;
+        place-items: center;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        transition:
+            background var(--default-transition-duration) var(--default-transition-timing-function),
+            color var(--default-transition-duration) var(--default-transition-timing-function);
+    }
+    .m-iconbtn:active {
+        background: var(--color-surface-soft);
+    }
+    .m-iconbtn svg {
+        width: 19px;
+        height: 19px;
+    }
+    .m-intro {
+        padding: var(--spacing-6) var(--spacing-4) var(--spacing-5);
+    }
+    .m-intro__title {
+        margin: 0 0 var(--spacing-2);
+        font-size: var(--text-2xl);
+        font-weight: 600;
+        letter-spacing: var(--tracking-tight);
+        line-height: 1.08;
+    }
+    .m-intro__desc {
+        margin: 0;
+        font-size: var(--text-base);
+        color: var(--color-text-secondary);
+        line-height: var(--leading-snug);
+        text-wrap: pretty;
+    }
+    .m-intro__meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-2) var(--spacing-3);
+        margin-top: var(--spacing-4);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        color: var(--color-text-tertiary);
+        letter-spacing: var(--tracking-wide);
+    }
+    .m-search {
+        padding: 0 var(--spacing-4) var(--spacing-3);
+    }
+    .m-search .pl-search__input {
+        height: 46px;
+    }
+    .m-stack {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-3);
+        padding: 0 var(--spacing-4) var(--spacing-5);
+    }
+    .m-results__meta {
+        padding: 0 var(--spacing-4) var(--spacing-3);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        color: var(--color-text-tertiary);
+        letter-spacing: var(--tracking-wide);
+    }
+    .m-taggrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-3);
+        padding: 0 var(--spacing-4) var(--spacing-5);
+    }
+    .m-tagtile {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--spacing-2);
+        padding: var(--spacing-4);
+        min-height: 56px;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        color: var(--color-text);
+    }
+    .m-tagtile:active {
+        background: var(--color-surface-soft);
+    }
+    .m-tagtile__name {
+        font-size: var(--text-sm);
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+    .m-tagtile__count {
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        color: var(--color-text-tertiary);
+    }
 }

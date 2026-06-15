@@ -1,11 +1,37 @@
-@props(['title' => 'Prompt Library'])
+@props([
+    'title' => 'Prompt Library',
+    'description' => 'Browse, search, and copy curated AI prompts for writing, coding, marketing, and productivity.',
+    'ogType' => 'website',
+    'ogImage' => null,
+])
+@php
+    $canonical = url()->current();
+    $ogImage ??= asset('favicon.ico');
+@endphp
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>{{ $title }}</title>
+    <meta name="description" content="{{ $description }}">
+    <link rel="canonical" href="{{ $canonical }}">
+
+    <meta property="og:site_name" content="Prompt Library">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:title" content="{{ $title }}">
+    <meta property="og:description" content="{{ $description }}">
+    <meta property="og:url" content="{{ $canonical }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ $title }}">
+    <meta name="twitter:description" content="{{ $description }}">
+
+    @stack('head')
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
@@ -28,12 +54,13 @@
             <a class="pl-navlink {{ request()->is('/') ? 'pl-navlink--active' : '' }}" href="{{ url('/') }}">Browse</a>
             <a class="pl-navlink {{ request()->is('prompts/latest') ? 'pl-navlink--active' : '' }}" href="{{ url('/prompts/latest') }}">Latest</a>
             <a class="pl-navlink {{ request()->is('prompts/most-viewed') ? 'pl-navlink--active' : '' }}" href="{{ url('/prompts/most-viewed') }}">Most viewed</a>
+            <a class="pl-navlink {{ request()->routeIs('tags.index') ? 'pl-navlink--active' : '' }}" href="{{ route('tags.index') }}">Tags</a>
             <button type="button" class="pl-iconbtn" id="themeToggle" aria-label="Toggle dark mode"></button>
         </nav>
     </div>
 </header>
 
-<main class="mx-auto" style="max-width: var(--container-content); padding: 0 var(--spacing-5);">
+<main id="main" class="mx-auto" style="max-width: var(--container-content); padding: 0 var(--spacing-5);">
     {{ $slot }}
 </main>
 
@@ -48,6 +75,21 @@
         </span>
     </div>
 </footer>
+
+<nav class="m-tabbar" aria-label="Primary">
+    <a class="m-tab {{ request()->routeIs('home') ? 'm-tab--active' : '' }}" href="{{ route('home') }}" aria-label="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+        Home
+    </a>
+    <a class="m-tab {{ request()->routeIs('mobile.search') ? 'm-tab--active' : '' }}" href="{{ route('mobile.search') }}" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        Search
+    </a>
+    <a class="m-tab {{ request()->routeIs('mobile.tags') ? 'm-tab--active' : '' }}" href="{{ route('mobile.tags') }}" aria-label="Tags">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3H4a1 1 0 0 0-1 1v5.59A2 2 0 0 0 3.59 11l9.58 9.59a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+        Tags
+    </a>
+</nav>
 
 <script>
 (function () {

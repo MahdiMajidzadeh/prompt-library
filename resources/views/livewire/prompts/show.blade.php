@@ -1,3 +1,24 @@
+@push('head')
+    <script type="application/ld+json">
+    @json([
+        '@context' => 'https://schema.org',
+        '@type' => 'CreativeWork',
+        'headline' => $prompt->title,
+        'name' => $prompt->title,
+        'text' => $prompt->body,
+        'url' => route('prompts.show', $prompt),
+        'datePublished' => $prompt->created_at->toAtomString(),
+        'dateModified' => $prompt->updated_at->toAtomString(),
+        'keywords' => $prompt->tags->pluck('name')->implode(', '),
+        'interactionStatistic' => [
+            '@type' => 'InteractionCounter',
+            'interactionType' => 'https://schema.org/ViewAction',
+            'userInteractionCount' => (int) $prompt->view_count,
+        ],
+    ], JSON_UNESCAPED_SLASHES)
+    </script>
+@endpush
+
 <div class="wrap">
     <article class="read">
         <a class="crumb" href="{{ url('/prompts/latest') }}">

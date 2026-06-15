@@ -14,8 +14,11 @@ All HTTP routes live in [`routes/web.php`](../routes/web.php). Three middleware 
 | GET | `/prompts/latest` | `Prompts\Latest` | `cache.public` | Infinite scroll (12/page), `latest()` order. `routes/web.php:22` |
 | GET | `/prompts/most-viewed` | `Prompts\MostViewed` | `cache.public` | Hard cap of 20, no load-more. `app/Livewire/Prompts/MostViewed.php:15` |
 | GET | `/prompts/{prompt:slug}` | `Prompts\Show` | `cache.public` | 404 if private, otherwise records a view (deduped) and renders body + related. `routes/web.php:24` |
-| GET | `/tags/{tag:slug}` | `Tags\Show` | `cache.public` | 404 if tag unknown (route-model binding), public-scoped prompts only. `routes/web.php:26` |
-| GET | `/search` | `Search` | `cache.public` | `?q=` debounced; matches `title` OR tag `name` (never body). `routes/web.php:28` |
+| GET | `/tags` | `Tags\Index` | `cache.public` | Lists every public-prompt tag with counts. `routes/web.php:27` |
+| GET | `/tags/{tag:slug}` | `Tags\Show` | `cache.public` | 404 if tag unknown (route-model binding), public-scoped prompts only. `routes/web.php:28` |
+| GET | `/search` | `Search` | `cache.public` | `?q=` debounced; matches `title` OR tag `name` (never body). `routes/web.php:30` |
+| GET | `/m/search` | `Mobile\Search` | `cache.public` | Mobile-only Search page — uses `layouts/mobile.blade.php`. Same query logic as `/search` but with the compact mobile chrome (sticky m-header + bottom tab bar). `routes/web.php:33` |
+| GET | `/m/tags` | `Mobile\Tags` | `cache.public` | Mobile-only Tags index. Same data as `/tags` rendered with `.m-taggrid` 2-col mobile tiles. `routes/web.php:34` |
 | GET | `/login` | `Auth\Login` | `guest` | Throttled 5 attempts/min per `(email, ip)`. `routes/web.php:33` |
 | POST | `/logout` | inline closure | (default web) | Logs out, invalidates session, regenerates CSRF, redirects to `/login`. `routes/web.php:36` |
 | GET | `/admin` | `Admin\Dashboard` | `auth + admin` | Counts: public/private prompts, tags, view rows, summed `view_count`. `routes/web.php:49` |

@@ -100,7 +100,7 @@ php artisan migrate --force
 php artisan db:seed --force
 ```
 
-`--force` is required in `production` because seeding is normally guarded against accidents. `db:seed` runs `AdminUserSeeder`, `TagSeeder`, `PromptSeeder` (the last creates 30 sample prompts — you may want to skip that on a real production deploy; see "First production deploy" below).
+`--force` is required in `production` because seeding is normally guarded against accidents. The only seeder shipped is `AdminUserSeeder`, which creates the admin user from `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Tags and prompts are created through the admin UI after first login.
 
 ## Permissions
 
@@ -225,17 +225,6 @@ numprocs=1
 redirect_stderr=true
 stdout_logfile=/var/log/prompt-library-worker.log
 stopwaitsecs=3600
-```
-
-## First production deploy: skip the sample prompts
-
-`PromptSeeder` creates 30 Faker-text prompts. On a real production site you don't want those — they'd appear publicly. After the schema is migrated, seed only what you need:
-
-```bash
-php artisan migrate --force
-php artisan db:seed --class=AdminUserSeeder --force
-php artisan db:seed --class=TagSeeder --force
-# Skip PromptSeeder — add your real prompts via /admin/prompts/create
 ```
 
 ## Subsequent deploys

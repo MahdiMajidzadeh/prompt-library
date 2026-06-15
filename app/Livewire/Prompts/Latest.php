@@ -28,6 +28,8 @@ class Latest extends Component
             'prompts' => $prompts,
             'total' => $total,
             'hasMore' => $total > $prompts->count(),
+        ])->layoutData([
+            'description' => "The newest prompts added to the library — {$total} curated prompts for writing, coding, marketing, and analysis.",
         ]);
     }
 }

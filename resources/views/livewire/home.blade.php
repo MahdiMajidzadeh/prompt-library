@@ -24,7 +24,7 @@
                     </svg>
                 </a>
             </div>
-            <div class="grid-2">
+            <div class="grid-2 grid-2--rail">
                 @foreach ($latest as $prompt)
                     <x-prompt-card :prompt="$prompt" wire:key="latest-{{ $prompt->id }}" />
                 @endforeach
@@ -45,7 +45,7 @@
                     </svg>
                 </a>
             </div>
-            <div class="grid-2">
+            <div class="grid-2 grid-2--rail">
                 @foreach ($mostViewed as $index => $prompt)
                     <x-prompt-card :prompt="$prompt" :rank="$index + 1" wire:key="popular-{{ $prompt->id }}" />
                 @endforeach
@@ -54,7 +54,7 @@
     @endif
 
     @if ($tags->isNotEmpty())
-        <section class="section">
+        <section class="section" id="tags">
             <div class="pl-section-head">
                 <h2 class="pl-section-head__title">Browse by tag</h2>
             </div>
