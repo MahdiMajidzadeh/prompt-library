@@ -27,6 +27,8 @@ class MostViewed extends Component
             'prompts' => $prompts,
             'total' => $prompts->count(),
             'hasMore' => false,
+        ])->layoutData([
+            'description' => 'The most-copied AI prompts in the library — ranked by view count.',
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Livewire\Prompts;
 
 use App\Models\Prompt;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -40,8 +41,18 @@ class Show extends Component
             ->take(6)
             ->get();
 
+        $description = Str::limit(
+            preg_replace('/\s+/', ' ', trim($this->prompt->body)),
+            155,
+        );
+
         return view('livewire.prompts.show', [
             'related' => $related,
-        ])->title($this->prompt->title);
+        ])
+            ->title($this->prompt->title)
+            ->layoutData([
+                'description' => $description,
+                'ogType' => 'article',
+            ]);
     }
 }

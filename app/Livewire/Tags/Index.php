@@ -21,6 +21,8 @@ class Index extends Component
 
         return view('livewire.tags.index', [
             'tags' => $tags,
+        ])->layoutData([
+            'description' => 'Every tag in the Prompt Library — browse prompts by topic: writing, coding, marketing, analysis, productivity, and more.',
         ]);
     }
 }

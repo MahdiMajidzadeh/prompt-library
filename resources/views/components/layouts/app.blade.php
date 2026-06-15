@@ -1,11 +1,37 @@
-@props(['title' => 'Prompt Library'])
+@props([
+    'title' => 'Prompt Library',
+    'description' => 'Browse, search, and copy curated AI prompts for writing, coding, marketing, and productivity.',
+    'ogType' => 'website',
+    'ogImage' => null,
+])
+@php
+    $canonical = url()->current();
+    $ogImage ??= asset('favicon.ico');
+@endphp
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>{{ $title }}</title>
+    <meta name="description" content="{{ $description }}">
+    <link rel="canonical" href="{{ $canonical }}">
+
+    <meta property="og:site_name" content="Prompt Library">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:title" content="{{ $title }}">
+    <meta property="og:description" content="{{ $description }}">
+    <meta property="og:url" content="{{ $canonical }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ $title }}">
+    <meta name="twitter:description" content="{{ $description }}">
+
+    @stack('head')
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
@@ -34,7 +60,7 @@
     </div>
 </header>
 
-<main class="mx-auto" style="max-width: var(--container-content); padding: 0 var(--spacing-5);">
+<main id="main" class="mx-auto" style="max-width: var(--container-content); padding: 0 var(--spacing-5);">
     {{ $slot }}
 </main>
 

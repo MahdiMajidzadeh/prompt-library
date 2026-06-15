@@ -40,6 +40,8 @@ class Home extends Component
             'latest' => $latest,
             'tags' => $tags,
             'totalPublic' => $totalPublic,
+        ])->layoutData([
+            'description' => "Browse {$totalPublic} curated AI prompts. Search, copy, and explore prompts for writing, coding, marketing, analysis, and productivity.",
         ]);
     }
 }
