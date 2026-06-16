@@ -1,6 +1,5 @@
-@push('head')
-    <script type="application/ld+json">
-    @json([
+@php
+    $ldJson = [
         '@context' => 'https://schema.org',
         '@type' => 'CreativeWork',
         'headline' => $prompt->title,
@@ -15,8 +14,10 @@
             'interactionType' => 'https://schema.org/ViewAction',
             'userInteractionCount' => (int) $prompt->view_count,
         ],
-    ], JSON_UNESCAPED_SLASHES)
-    </script>
+    ];
+@endphp
+@push('head')
+    <script type="application/ld+json">{!! json_encode($ldJson, JSON_UNESCAPED_SLASHES) !!}</script>
 @endpush
 
 <div class="wrap">
