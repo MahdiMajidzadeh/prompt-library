@@ -1,23 +1,22 @@
-@php
-    $ldJson = [
-        '@context' => 'https://schema.org',
-        '@type' => 'CreativeWork',
-        'headline' => $prompt->title,
-        'name' => $prompt->title,
-        'text' => $prompt->body,
-        'url' => route('prompts.show', $prompt),
-        'datePublished' => $prompt->created_at->toAtomString(),
-        'dateModified' => $prompt->updated_at->toAtomString(),
-        'keywords' => $prompt->tags->pluck('name')->implode(', '),
-        'interactionStatistic' => [
-            '@type' => 'InteractionCounter',
-            'interactionType' => 'https://schema.org/ViewAction',
-            'userInteractionCount' => (int) $prompt->view_count,
-        ],
-    ];
-@endphp
 @push('head')
-    <script type="application/ld+json">{!! json_encode($ldJson, JSON_UNESCAPED_SLASHES) !!}</script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "CreativeWork",
+        "headline": {{ Illuminate\Support\Js::from($prompt->title) }},
+        "name": {{ Illuminate\Support\Js::from($prompt->title) }},
+        "text": {{ Illuminate\Support\Js::from($prompt->body) }},
+        "url": {{ Illuminate\Support\Js::from(route('prompts.show', $prompt)) }},
+        "datePublished": {{ Illuminate\Support\Js::from($prompt->created_at->toAtomString()) }},
+        "dateModified": {{ Illuminate\Support\Js::from($prompt->updated_at->toAtomString()) }},
+        "keywords": {{ Illuminate\Support\Js::from($prompt->tags->pluck('name')->implode(', ')) }},
+        "interactionStatistic": {
+            "@type": "InteractionCounter",
+            "interactionType": "https://schema.org/ViewAction",
+            "userInteractionCount": {{ (int) $prompt->view_count }}
+        }
+    }
+    </script>
 @endpush
 
 <div class="wrap">
