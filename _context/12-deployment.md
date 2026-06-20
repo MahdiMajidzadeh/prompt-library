@@ -296,6 +296,10 @@ For HSTS, add to the nginx server block (after HTTPS is working):
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 ```
 
+### Forcing HTTPS at the application layer
+
+In production, `AppServiceProvider::boot()` calls `URL::forceScheme('https')` and sets `$_SERVER['HTTPS']='on'` so all generated URLs (route(), asset(), redirects) use `https://` even when the origin sits behind a CDN that terminates TLS and forwards plain HTTP (e.g. Cloudflare Flexible SSL). Without this, generated links can be `http://`, causing mixed-content and redirect loops. The guard is `app()->environment('production')` so `php artisan serve` on localhost still works over HTTP.
+
 ## Logs
 
 - App logs → `storage/logs/laravel.log`. Rotate with `logrotate`.
