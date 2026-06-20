@@ -42,6 +42,10 @@ How code is shaped in this repo, and what to avoid. Specific to the style alread
 - Use design-token CSS variables (`var(--spacing-5)`) rather than raw pixel/rem values inside Blade.
 - The dark/light theme is gated on `data-theme` — `@media (prefers-color-scheme: dark)` is only a first-paint fallback. Don't rely on media queries for theme logic.
 
+## Blade gotchas
+
+- **Escape literal `@` directives in JSON-LD / inline JSON.** Laravel 12 ships a `@context` Blade directive, so `"@context"` inside a `<script type="application/ld+json">` block compiles as that directive and throws a `ParseError` ("unexpected end of file, expecting endif"). Write `"@@context"` — Blade emits a single literal `@`. Other keys like `"@type"` aren't directives and are safe, but prefer escaping any `@word` JSON key to be safe. See `livewire/prompts/show.blade.php`.
+
 ## Forms
 
 - Tag picker is a button grid with `wire:click="$toggle('tagIds.{{ $id }}')"`. Don't introduce a multi-select widget — the current UX is intentional.
