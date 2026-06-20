@@ -275,6 +275,27 @@ What [`deploy.sh`](../deploy.sh) does:
 
 The `--delete` flag prunes remote files that no longer exist locally, **but excluded paths are never touched** — so `storage/`, `vendor/`, and `.env` on the server are safe.
 
+### Option B-incremental — FTP, only what changed since the last tag ([`deploy-changes.sh`](../deploy-changes.sh))
+
+For routine "ship what I changed" deploys without re-mirroring the whole tree. Uses `curl` (no `lftp` needed) and reads the same `.deploy.env`.
+
+```bash
+./deploy-changes.sh --dry-run        # list files changed since the latest tag
+./deploy-changes.sh                  # upload them (prompts to confirm)
+./deploy-changes.sh --from v0.1.0    # diff against a specific tag/commit instead
+./deploy-changes.sh --no-delete      # upload only; don't delete removed files
+```
+
+What it does:
+
+- Computes the change set with `git diff --no-renames --name-only <tag>..HEAD`. Uploads added/modified files (from disk, via `curl --ftp-create-dirs`) and deletes files removed since the tag.
+- Default `<tag>` is the most recent tag reachable from HEAD (`git describe --tags --abbrev=0`).
+- Same exclude policy as `deploy.sh`, **plus `bootstrap/cache/`** — that dir is server-generated, so the script never uploads to or deletes from it.
+- Warns if the working tree is dirty (files ship as they are on disk, which may differ from the commit).
+- **Caveat:** `public/build/` is git-ignored, so front-end asset changes do **not** appear in the diff. After a CSS/JS change, rebuild and use `deploy.sh` (or upload `public/build/` separately).
+
+Run the same post-deploy steps as Option B only if PHP/composer or migrations changed.
+
 ### Option C — zero-downtime
 
 Use [Envoyer](https://envoyer.io) or [Deployer](https://deployer.org). Same recipe, but they atomically switch a symlink between release directories so requests in flight aren't interrupted.

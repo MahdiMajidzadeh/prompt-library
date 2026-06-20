@@ -31,3 +31,6 @@ yarn-error.log
 # Project specific
 **/.DS_Store
 database/database.sqlite
+
+# Deploy credentials
+.deploy.env
