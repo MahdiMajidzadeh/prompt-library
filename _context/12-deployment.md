@@ -207,7 +207,7 @@ Add:
 * * * * * cd /var/www/prompt-library && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Laravel's scheduler ticks once per minute and dispatches `prompts:aggregate-views` every 5 minutes per `routes/console.php:11-13`. The `withoutOverlapping()` lock protects against runaway concurrent runs.
+Laravel's scheduler ticks once per minute and dispatches `prompts:aggregate-views` hourly per `routes/console.php:11-13`. The `withoutOverlapping()` lock protects against runaway concurrent runs.
 
 ## Queue worker (optional, currently unused)
 

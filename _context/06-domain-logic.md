@@ -28,7 +28,7 @@ public function mount(Prompt $prompt): void
 
 This 30-second dedupe window is enforced by `tests/Feature/ViewTrackingTest.php:33-71` (collapses rapid repeats; expires after 30s).
 
-### Aggregation (scheduled command, every 5 minutes)
+### Aggregation (scheduled command, hourly)
 
 `app/Console/Commands/AggregatePromptViews.php` — folds uncounted rows into the denormalized `prompts.view_count`.
 
@@ -41,11 +41,11 @@ Algorithm:
 Properties:
 - **Idempotent** — re-running with no new rows is a no-op (`AggregateViewsTest.php`).
 - **Incremental** — never rescans rows already counted. Preferred over `UPDATE prompts SET view_count = (SELECT COUNT(*) …)` for write volume.
-- **Schedule registration:** `routes/console.php:11-13` — `Schedule::command('prompts:aggregate-views')->everyFiveMinutes()->withoutOverlapping();`
+- **Schedule registration:** `routes/console.php:11-13` — `Schedule::command('prompts:aggregate-views')->hourly()->withoutOverlapping();`
 
 ### Why view counts can lag
 
-Up to ~5 minutes between a view being recorded and showing in "most viewed" ordering. This is **intentional** — folding on every page hit would create row-level contention on `prompts.view_count` under load. The lag is documented in [`README.md`](../README.md).
+Up to ~1 hour between a view being recorded and showing in "most viewed" ordering. This is **intentional** — folding on every page hit would create row-level contention on `prompts.view_count` under load. The lag is documented in [`README.md`](../README.md).
 
 ## Search
 

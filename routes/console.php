@@ -9,5 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('prompts:aggregate-views')
-    ->everyFiveMinutes()
+    ->hourly()
     ->withoutOverlapping();

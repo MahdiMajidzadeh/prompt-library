@@ -56,7 +56,7 @@ npm run dev               # Vite dev server with HMR
 php artisan schedule:work # only needed if you want view aggregation to run
 ```
 
-`schedule:work` polls and dispatches scheduled commands on the same cadence as a real crontab — locally that means `prompts:aggregate-views` fires every 5 minutes (`routes/console.php:11`).
+`schedule:work` polls and dispatches scheduled commands on the same cadence as a real crontab — locally that means `prompts:aggregate-views` fires hourly (`routes/console.php:11`).
 
 ## Common commands
 
@@ -99,7 +99,7 @@ Add to crontab so Laravel ticks once per minute:
 * * * * * cd /path/to/prompt-library && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-This will run `prompts:aggregate-views` every 5 minutes per `routes/console.php:11-13`.
+This will run `prompts:aggregate-views` hourly per `routes/console.php:11-13`.
 
 ## Git etiquette in this repo
 
@@ -115,4 +115,4 @@ This will run `prompts:aggregate-views` every 5 minutes per `routes/console.php:
 | Public page shows stale content | The 30-min browser cache. Hard-refresh, or wait. |
 | Livewire 419 (CSRF) on POST | Page was served from a stale cache after a session change. Reload the page. |
 | Seeder fails with "AdminUserSeeder requires ADMIN_EMAIL and ADMIN_PASSWORD" | Set both in `.env`. |
-| "Most viewed" doesn't reflect a recent view | Aggregation runs every 5 minutes; run `php artisan prompts:aggregate-views` to force. |
+| "Most viewed" doesn't reflect a recent view | Aggregation runs hourly; run `php artisan prompts:aggregate-views` to force. |
