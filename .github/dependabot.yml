@@ -1,0 +1,44 @@
+version: 2
+updates:
+  # PHP / Laravel
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5          # skip brand-new releases (supply-chain safety)
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "composer"
+    groups:
+      laravel:
+        patterns: ["laravel/*", "livewire/*"]
+        update-types: ["minor", "patch"]
+      dev-tools:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+
+  # Frontend (Vite / Tailwind)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 5
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "npm"
+    groups:
+      tailwind:                # tailwindcss and @tailwindcss/vite must move together
+        patterns: ["tailwindcss", "@tailwindcss/*"]
+      vite:                    # vite and laravel-vite-plugin are version-coupled
+        patterns: ["vite", "laravel-vite-plugin"]
+      other-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # Uncomment once you add workflows under .github/workflows
+  # - package-ecosystem: "github-actions"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "monthly"
